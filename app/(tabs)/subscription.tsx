@@ -74,19 +74,16 @@ export default function SubscriptionListScreen() {
 
   return (
     <>
-      <Stack.Screen
-        options={{
-          title: 'Subscriptions',
-          headerRight: () => (
-            <Link href="/subscription/create" asChild>
-              <Pressable style={{ marginRight: 16 }}>
-                <ThemedText style={{ color: Colors[colorScheme].tint }}>+ Add</ThemedText>
-              </Pressable>
-            </Link>
-          ),
-        }}
-      />
-      <SafeAreaView style={styles.container} edges={['bottom']}>
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.header}>
+          <ThemedText type="subtitle">Subscriptions</ThemedText>
+          <Link href="/subscription/create" asChild>
+            <Pressable>
+              <ThemedText style={{ color: Colors[colorScheme].tint, fontWeight: '600' }}>+ Add</ThemedText>
+            </Pressable>
+          </Link>
+        </View>
+
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           {activeSubscriptions.length === 0 ? (
             <ThemedView style={styles.emptyState}>
@@ -169,6 +166,13 @@ export default function SubscriptionListScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
   content: {
     flex: 1,

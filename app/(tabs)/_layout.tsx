@@ -1,6 +1,6 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { Home, Settings } from 'lucide-react-native';
+import { Home, History, Calendar } from 'lucide-react-native';
 import { DesignTokens } from '@/constants/theme';
 
 export default function TabLayout() {
@@ -33,10 +33,18 @@ export default function TabLayout() {
       />
 
       <Tabs.Screen
-        name="settings"
+        name="history"
         options={{
-          title: 'Settings',
-          tabBarIcon: ({ color, size }) => <Settings color={color} size={size} />,
+          title: 'History',
+          tabBarIcon: ({ color, size }) => <History color={color} size={size} />,
+        }}
+      />
+
+      <Tabs.Screen
+        name="subscription"
+        options={{
+          title: 'Subscriptions',
+          tabBarIcon: ({ color, size }) => <Calendar color={color} size={size} />,
         }}
       />
     </Tabs>
