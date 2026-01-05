@@ -13,17 +13,20 @@ interface TransactionStore {
   loadTransactions: () => Promise<void>;
   addTransaction: (data: {
     type: 'income' | 'expense';
+    status?: 'paid' | 'pending';
     amount: number; // in dollars/currency units
     walletId: string;
     categoryId: string;
     note?: string;
     date?: Date;
   }) => Promise<Transaction>;
+  updateTransactionStatus: (id: string, status: 'paid' | 'pending') => Promise<void>;
   deleteTransaction: (id: string) => Promise<void>;
 
   // Getters
   getRecentTransactions: (limit?: number) => Transaction[];
   getTransactionsByMonth: (year: number, month: number) => Transaction[];
+  getPendingTransactions: () => Transaction[];
 }
 
 export const useTransactionStore = create<TransactionStore>((set, get) => ({
@@ -43,6 +46,7 @@ export const useTransactionStore = create<TransactionStore>((set, get) => ({
     const newTransaction: NewTransaction = {
       id: uuidv4(),
       type: data.type,
+      status: data.status ?? 'paid',
       amount: amountInCents,
       walletId: data.walletId,
       categoryId: data.categoryId,
@@ -63,14 +67,49 @@ export const useTransactionStore = create<TransactionStore>((set, get) => ({
       transactions: [transaction, ...state.transactions],
     }));
 
-    // Update wallet balance
-    await useWalletStore.getState().updateWalletBalance(
-      data.walletId,
-      amountInCents,
-      data.type
-    );
+    if (data.status !== 'pending') {
+      await useWalletStore.getState().updateWalletBalance(
+        data.walletId,
+        amountInCents,
+        data.type
+      );
+    }
 
     return transaction;
+  },
+
+  updateTransactionStatus: async (id: string, status: 'paid' | 'pending') => {
+    const transaction = get().transactions.find((t) => t.id === id);
+    if (!transaction) return;
+
+    const oldStatus = transaction.status;
+    if (oldStatus === status) return;
+
+    await db.update(transactions).set({ status }).where(eq(transactions.id, id));
+
+    set((state) => ({
+      transactions: state.transactions.map((t) =>
+        t.id === id ? { ...t, status } : t
+      ),
+    }));
+
+    const pendingToPaid = oldStatus === 'pending' && status === 'paid';
+    const paidToPending = oldStatus === 'paid' && status === 'pending';
+
+    if (pendingToPaid) {
+      await useWalletStore.getState().updateWalletBalance(
+        transaction.walletId,
+        transaction.amount,
+        transaction.type
+      );
+    } else if (paidToPending) {
+      const reverseType = transaction.type === 'income' ? 'expense' : 'income';
+      await useWalletStore.getState().updateWalletBalance(
+        transaction.walletId,
+        transaction.amount,
+        reverseType
+      );
+    }
   },
 
   deleteTransaction: async (id: string) => {
@@ -79,13 +118,14 @@ export const useTransactionStore = create<TransactionStore>((set, get) => ({
 
     await db.delete(transactions).where(eq(transactions.id, id));
 
-    // Reverse the wallet balance update
-    const reverseType = transaction.type === 'income' ? 'expense' : 'income';
-    await useWalletStore.getState().updateWalletBalance(
-      transaction.walletId,
-      transaction.amount,
-      reverseType
-    );
+    if (transaction.status === 'paid') {
+      const reverseType = transaction.type === 'income' ? 'expense' : 'income';
+      await useWalletStore.getState().updateWalletBalance(
+        transaction.walletId,
+        transaction.amount,
+        reverseType
+      );
+    }
 
     set((state) => ({
       transactions: state.transactions.filter((t) => t.id !== id),
@@ -101,5 +141,9 @@ export const useTransactionStore = create<TransactionStore>((set, get) => ({
       const date = new Date(t.date);
       return date.getFullYear() === year && date.getMonth() === month;
     });
+  },
+
+  getPendingTransactions: () => {
+    return get().transactions.filter((t) => t.status === 'pending');
   },
 }));

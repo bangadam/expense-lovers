@@ -18,6 +18,7 @@ export default function CreateTransactionScreen() {
   const addTransaction = useTransactionStore((state) => state.addTransaction);
 
   const [type, setType] = useState<'expense' | 'income'>('expense');
+  const [status, setStatus] = useState<'paid' | 'pending'>('paid');
   const [amount, setAmount] = useState('');
   const [selectedWalletId, setSelectedWalletId] = useState(wallets[0]?.id ?? '');
   const [selectedCategoryId, setSelectedCategoryId] = useState('');
@@ -92,6 +93,7 @@ export default function CreateTransactionScreen() {
     try {
       await addTransaction({
         type,
+        status,
         amount: amountValue,
         walletId: selectedWalletId,
         categoryId: selectedCategoryId,
@@ -166,6 +168,53 @@ export default function CreateTransactionScreen() {
               onChangeText={handleAmountChange}
               keyboardType="decimal-pad"
             />
+          </View>
+
+          {/* Status Selector */}
+          <View style={styles.field}>
+            <ThemedText style={styles.label}>Status</ThemedText>
+            <View style={styles.statusSelector}>
+              <Pressable
+                style={[
+                  styles.statusButton,
+                  {
+                    backgroundColor:
+                      status === 'paid'
+                        ? Colors[colorScheme].tint
+                        : colorScheme === 'dark'
+                        ? '#333'
+                        : '#f5f5f5',
+                  },
+                ]}
+                onPress={() => setStatus('paid')}
+              >
+                <ThemedText
+                  style={[styles.statusText, status === 'paid' && styles.statusTextActive]}
+                >
+                  Paid
+                </ThemedText>
+              </Pressable>
+              <Pressable
+                style={[
+                  styles.statusButton,
+                  {
+                    backgroundColor:
+                      status === 'pending'
+                        ? '#f59e0b'
+                        : colorScheme === 'dark'
+                        ? '#333'
+                        : '#f5f5f5',
+                  },
+                ]}
+                onPress={() => setStatus('pending')}
+              >
+                <ThemedText
+                  style={[styles.statusText, status === 'pending' && styles.statusTextActive]}
+                >
+                  Pending
+                </ThemedText>
+              </Pressable>
+            </View>
           </View>
 
           {/* Wallet Selector */}
@@ -417,6 +466,24 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#fff',
     fontSize: 16,
+    fontWeight: '600',
+  },
+  statusSelector: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  statusButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  statusText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  statusTextActive: {
+    color: '#fff',
     fontWeight: '600',
   },
 });

@@ -30,6 +30,7 @@ const createTablesSQL = `
   CREATE TABLE IF NOT EXISTS transactions (
     id TEXT PRIMARY KEY NOT NULL,
     type TEXT NOT NULL CHECK (type IN ('income', 'expense')),
+    status TEXT NOT NULL DEFAULT 'paid' CHECK (status IN ('paid', 'pending')),
     amount INTEGER NOT NULL,
     wallet_id TEXT NOT NULL REFERENCES wallets(id),
     category_id TEXT NOT NULL REFERENCES categories(id),
@@ -44,7 +45,6 @@ const createTablesSQL = `
 `;
 
 export async function initializeDatabase(): Promise<void> {
-  // Execute each statement separately
   const statements = createTablesSQL
     .split(';')
     .map((s) => s.trim())
@@ -52,6 +52,11 @@ export async function initializeDatabase(): Promise<void> {
 
   for (const statement of statements) {
     expoDb.execSync(statement);
+  }
+
+  try {
+    expoDb.execSync("ALTER TABLE transactions ADD COLUMN status TEXT NOT NULL DEFAULT 'paid' CHECK (status IN ('paid', 'pending'))");
+  } catch {
   }
 }
 

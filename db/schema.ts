@@ -20,6 +20,7 @@ export const categories = sqliteTable('categories', {
 export const transactions = sqliteTable('transactions', {
   id: text('id').primaryKey(),
   type: text('type', { enum: ['income', 'expense'] }).notNull(),
+  status: text('status', { enum: ['paid', 'pending'] }).notNull().default('paid'),
   amount: integer('amount').notNull(), // stored in cents, always positive
   walletId: text('wallet_id')
     .notNull()
