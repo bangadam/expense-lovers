@@ -1,12 +1,17 @@
-import { StyleSheet, View, Pressable } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Constants from 'expo-constants';
+import {
+  Box,
+  VStack,
+  HStack,
+  Text,
+  Heading,
+  Pressable,
+} from '@gluestack-ui/themed';
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
 import { useSettingsStore, getEffectiveColorScheme } from '@/stores/settings-store';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { Colors } from '@/constants/theme';
 
 type ThemeMode = 'light' | 'dark' | 'system';
 
@@ -23,98 +28,75 @@ export default function SettingsScreen() {
   const appVersion = Constants.expoConfig?.version ?? '1.0.0';
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <ThemedView style={styles.content}>
-        <ThemedText type="title">Settings</ThemedText>
+    <Box flex={1} bg="$backgroundLight0">
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <Box p="$4" flex={1}>
+          <Heading size="xl">Settings</Heading>
 
-        <ThemedView style={styles.section}>
-          <ThemedText type="subtitle" style={styles.sectionTitle}>
-            Appearance
-          </ThemedText>
-          <ThemedView style={styles.optionGroup}>
-            {themeModes.map((mode) => (
-              <Pressable
-                key={mode.value}
-                style={[
-                  styles.optionButton,
-                  themeMode === mode.value && {
-                    backgroundColor: Colors[effectiveScheme].tint,
-                  },
-                ]}
-                onPress={() => setThemeMode(mode.value)}>
-                <ThemedText
-                  style={[
-                    styles.optionText,
-                    themeMode === mode.value && styles.optionTextSelected,
-                  ]}>
-                  {mode.label}
-                </ThemedText>
-              </Pressable>
-            ))}
-          </ThemedView>
-        </ThemedView>
+          <VStack mt="$6" space="lg">
+            <Box>
+              <Heading size="sm" mb="$3">
+                Appearance
+              </Heading>
+              <HStack
+                bg="$white"
+                rounded="$lg"
+                overflow="hidden"
+              >
+                {themeModes.map((mode) => (
+                  <Pressable
+                    key={mode.value}
+                    flex={1}
+                    py="$3"
+                    alignItems="center"
+                    bg={themeMode === mode.value ? '$primary500' : '$backgroundLight100'}
+                    onPress={() => setThemeMode(mode.value)}
+                  >
+                    <Text
+                      fontWeight={themeMode === mode.value ? '$semibold' : '$medium'}
+                      color={themeMode === mode.value ? '$white' : '$textLight700'}
+                    >
+                      {mode.label}
+                    </Text>
+                  </Pressable>
+                ))}
+              </HStack>
+            </Box>
 
-        <ThemedView style={styles.section}>
-          <ThemedText type="subtitle" style={styles.sectionTitle}>
-            About
-          </ThemedText>
-          <View style={styles.infoRow}>
-            <ThemedText style={styles.infoLabel}>Version</ThemedText>
-            <ThemedText style={styles.infoValue}>{appVersion}</ThemedText>
-          </View>
-          <View style={styles.infoRow}>
-            <ThemedText style={styles.infoLabel}>App Name</ThemedText>
-            <ThemedText style={styles.infoValue}>Expense Lovers</ThemedText>
-          </View>
-        </ThemedView>
-      </ThemedView>
-    </SafeAreaView>
+            <Box>
+              <Heading size="sm" mb="$3">
+                About
+              </Heading>
+              <Box bg="$white" rounded="$lg" overflow="hidden">
+                <HStack
+                  p="$4"
+                  justifyContent="space-between"
+                  alignItems="center"
+                  borderBottomWidth={StyleSheet.hairlineWidth}
+                  borderBottomColor="$borderLight200"
+                >
+                  <Text color="$textLight500">Version</Text>
+                  <Text fontWeight="$medium" color="$textLight900">{appVersion}</Text>
+                </HStack>
+                <HStack
+                  p="$4"
+                  justifyContent="space-between"
+                  alignItems="center"
+                >
+                  <Text color="$textLight500">App Name</Text>
+                  <Text fontWeight="$medium" color="$textLight900">Expense Lovers</Text>
+                </HStack>
+              </Box>
+            </Box>
+          </VStack>
+        </Box>
+      </SafeAreaView>
+    </Box>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  content: {
-    flex: 1,
-    padding: 16,
-  },
-  section: {
-    marginTop: 24,
-  },
-  sectionTitle: {
-    marginBottom: 12,
-  },
-  optionGroup: {
-    flexDirection: 'row',
-    borderRadius: 8,
-    overflow: 'hidden',
-  },
-  optionButton: {
-    flex: 1,
-    paddingVertical: 12,
-    alignItems: 'center',
-    backgroundColor: 'rgba(128, 128, 128, 0.2)',
-  },
-  optionText: {
-    fontWeight: '500',
-  },
-  optionTextSelected: {
-    color: '#fff',
-    fontWeight: '600',
-  },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(128, 128, 128, 0.3)',
-  },
-  infoLabel: {
-    opacity: 0.7,
-  },
-  infoValue: {
-    fontWeight: '500',
   },
 });
