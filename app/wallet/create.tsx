@@ -1,15 +1,24 @@
 import React, { useState } from 'react';
-import { StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
-import { Layout, Text, Input, Button, TopNavigation, TopNavigationAction } from '@ui-kitten/components';
-import { Ionicons } from '@expo/vector-icons';
+import { KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
+import {
+  Box,
+  VStack,
+  Text,
+  Heading,
+  Input,
+  InputField,
+  InputSlot,
+  Button,
+  ButtonText,
+  HStack,
+  Pressable,
+  Icon,
+} from '@gluestack-ui/themed';
+import { ArrowLeft } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 
 import { useWalletStore } from '@/stores/wallet-store';
-
-const BackIcon = (props: any) => (
-  <Ionicons name="arrow-back" size={24} color={props.style?.tintColor || '#000'} />
-);
 
 export default function CreateWalletScreen() {
   const addWallet = useWalletStore((state) => state.addWallet);
@@ -49,75 +58,89 @@ export default function CreateWalletScreen() {
     }
   };
 
-  const BackAction = () => (
-    <TopNavigationAction icon={BackIcon} onPress={() => router.back()} />
-  );
-
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <TopNavigation
-        title="Create Wallet"
-        alignment="center"
-        accessoryLeft={BackAction}
-      />
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardView}
-      >
-        <Layout style={styles.content}>
-          <Input
-            style={styles.input}
-            label="Wallet Name"
-            placeholder="e.g., Cash, Bank Account, Savings"
-            value={name}
-            onChangeText={(text) => {
-              setName(text);
-              if (error) setError(null);
-            }}
-            status={error ? 'danger' : 'basic'}
-            caption={error || undefined}
-            autoFocus
-          />
+    <Box flex={1} bg="$backgroundLight0">
+      <SafeAreaView style={{ flex: 1 }} edges={['top']}>
+        <HStack
+          p="$4"
+          alignItems="center"
+          borderBottomWidth={1}
+          borderBottomColor="$borderLight200"
+        >
+          <Pressable onPress={() => router.back()} p="$2" mr="$2">
+            <Icon as={ArrowLeft} size="xl" color="$textLight900" />
+          </Pressable>
+          <Heading size="md">Create Wallet</Heading>
+        </HStack>
 
-          <Input
-            style={styles.input}
-            label="Initial Balance"
-            placeholder="0.00"
-            value={balance}
-            onChangeText={(text) => setBalance(formatBalance(text))}
-            keyboardType="decimal-pad"
-            accessoryLeft={(props) => <Text {...props}>$</Text>}
-          />
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.keyboardView}
+        >
+          <VStack flex={1} p="$4" space="md">
+            <VStack space="xs">
+              <Text size="sm" fontWeight="$medium" color="$textLight700">
+                Wallet Name
+              </Text>
+              <Input
+                size="lg"
+                isInvalid={!!error}
+                variant="outline"
+              >
+                <InputField
+                  placeholder="e.g., Cash, Bank Account, Savings"
+                  value={name}
+                  onChangeText={(text) => {
+                    setName(text);
+                    if (error) setError(null);
+                  }}
+                  autoFocus
+                />
+              </Input>
+              {error && (
+                <Text size="xs" color="$error600">
+                  {error}
+                </Text>
+              )}
+            </VStack>
 
-          <Button
-            style={styles.button}
-            size="large"
-            onPress={handleSubmit}
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? 'Creating...' : 'Create Wallet'}
-          </Button>
-        </Layout>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+            <VStack space="xs">
+              <Text size="sm" fontWeight="$medium" color="$textLight700">
+                Initial Balance
+              </Text>
+              <Input size="lg" variant="outline">
+                <InputSlot pl="$3">
+                  <Text color="$textLight500">$</Text>
+                </InputSlot>
+                <InputField
+                  placeholder="0.00"
+                  value={balance}
+                  onChangeText={(text) => setBalance(formatBalance(text))}
+                  keyboardType="decimal-pad"
+                />
+              </Input>
+            </VStack>
+
+            <Box mt="$4">
+              <Button
+                size="lg"
+                onPress={handleSubmit}
+                isDisabled={isSubmitting}
+              >
+                <ButtonText>
+                  {isSubmitting ? 'Creating...' : 'Create Wallet'}
+                </ButtonText>
+              </Button>
+            </Box>
+          </VStack>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </Box>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
   keyboardView: {
     flex: 1,
-  },
-  content: {
-    flex: 1,
-    padding: 16,
-  },
-  input: {
-    marginBottom: 16,
-  },
-  button: {
-    marginTop: 16,
   },
 });

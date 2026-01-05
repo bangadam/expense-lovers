@@ -1,6 +1,12 @@
 import React, { useMemo } from 'react';
-import { StyleSheet } from 'react-native';
-import { Layout, Text, List, ListItem, Divider, Card } from '@ui-kitten/components';
+import { FlatList, StyleSheet } from 'react-native';
+import {
+  Box,
+  VStack,
+  HStack,
+  Text,
+  Heading,
+} from '@gluestack-ui/themed';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useTransactionStore } from '@/stores/transaction-store';
@@ -73,51 +79,67 @@ export default function HistoryScreen() {
       .map((key) => ({ title: key, data: groups[key] }));
   }, [transactions]);
 
-  const renderTransaction = ({ item }: { item: Transaction }) => (
-    <ListItem
-      title={getCategoryName(item.categoryId)}
-      description={`${getWalletName(item.walletId)} • ${formatDate(new Date(item.date))}${item.note ? ` • ${item.note}` : ''}`}
-      accessoryRight={() => (
-        <Text status={item.type === 'income' ? 'success' : 'danger'} category="s1">
+  const renderTransaction = ({ item, index, total }: { item: Transaction; index: number; total: number }) => (
+    <Box>
+      <HStack p="$4" justifyContent="space-between" alignItems="center">
+        <VStack flex={1}>
+          <Text fontWeight="$medium" color="$textLight900">
+            {getCategoryName(item.categoryId)}
+          </Text>
+          <Text size="xs" color="$textLight500" numberOfLines={1}>
+            {getWalletName(item.walletId)} • {formatDate(new Date(item.date))}
+            {item.note ? ` • ${item.note}` : ''}
+          </Text>
+        </VStack>
+        <Text
+          fontWeight="$bold"
+          color={item.type === 'income' ? '$success600' : '$error600'}
+        >
           {item.type === 'income' ? '+' : '-'}{formatCurrency(item.amount)}
         </Text>
-      )}
-    />
+      </HStack>
+      {index < total - 1 && <Box h={1} bg="$borderLight100" />}
+    </Box>
   );
 
   const renderGroup = ({ item }: { item: GroupedTransactions }) => (
-    <Layout style={styles.group}>
-      <Text category="h6" style={styles.groupTitle}>{item.title}</Text>
-      <Card style={styles.groupCard}>
-        <List
-          data={item.data}
-          renderItem={renderTransaction}
-          ItemSeparatorComponent={Divider}
-          scrollEnabled={false}
-        />
-      </Card>
-    </Layout>
+    <Box mb="$5">
+      <Heading size="sm" mb="$2">
+        {item.title}
+      </Heading>
+      <Box bg="$white" rounded="$lg" overflow="hidden">
+        {item.data.map((transaction, index) => (
+          <Box key={transaction.id}>
+            {renderTransaction({ item: transaction, index, total: item.data.length })}
+          </Box>
+        ))}
+      </Box>
+    </Box>
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <Layout style={styles.header}>
-        <Text category="h5">Transaction History</Text>
-      </Layout>
+    <Box flex={1} bg="$backgroundLight0">
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <Box p="$4" pb="$2">
+          <Heading size="lg">Transaction History</Heading>
+        </Box>
 
-      {transactions.length === 0 ? (
-        <Layout style={styles.empty}>
-          <Text appearance="hint">No transactions yet</Text>
-        </Layout>
-      ) : (
-        <List
-          style={styles.list}
-          data={groupedTransactions}
-          renderItem={renderGroup}
-          showsVerticalScrollIndicator={false}
-        />
-      )}
-    </SafeAreaView>
+        {transactions.length === 0 ? (
+          <Box flex={1} justifyContent="center" alignItems="center">
+            <Text color="$textLight500">No transactions yet</Text>
+          </Box>
+        ) : (
+          <FlatList
+            style={styles.list}
+            data={groupedTransactions}
+            renderItem={renderGroup}
+            keyExtractor={(item) => item.title}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.listContent}
+          />
+        )}
+      </SafeAreaView>
+    </Box>
   );
 }
 
@@ -125,26 +147,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    padding: 16,
-    paddingBottom: 8,
-  },
   list: {
     flex: 1,
     paddingHorizontal: 16,
   },
-  group: {
-    marginBottom: 20,
-  },
-  groupTitle: {
-    marginBottom: 8,
-  },
-  groupCard: {
-    padding: 0,
-  },
-  empty: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+  listContent: {
+    paddingBottom: 100,
   },
 });

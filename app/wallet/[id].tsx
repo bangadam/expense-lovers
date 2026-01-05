@@ -1,23 +1,24 @@
 import React, { useState } from 'react';
-import { StyleSheet, Alert } from 'react-native';
-import { Layout, Text, Card, Input, Button, Icon, TopNavigation, TopNavigationAction, Modal } from '@ui-kitten/components';
+import { StyleSheet, Alert, Modal as RNModal } from 'react-native';
+import {
+  Box,
+  VStack,
+  HStack,
+  Text,
+  Heading,
+  Input,
+  InputField,
+  Button,
+  ButtonText,
+  ButtonIcon,
+  Pressable,
+  Icon,
+} from '@gluestack-ui/themed';
+import { ArrowLeft, Pencil, Trash2 } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 
 import { useWalletStore } from '@/stores/wallet-store';
-
-const BackIcon = (props: any) => (
-  <Ionicons name="arrow-back" size={24} color={props.style?.tintColor || '#000'} />
-);
-
-const EditIcon = (props: any) => (
-  <Ionicons name="create-outline" size={24} color={props.style?.tintColor || '#000'} />
-);
-
-const TrashIcon = (props: any) => (
-  <Icon {...props} name="trash-2-outline" />
-);
 
 function formatCurrency(cents: number): string {
   return new Intl.NumberFormat('en-US', {
@@ -39,17 +40,24 @@ export default function WalletDetailScreen() {
 
   if (!wallet) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <TopNavigation
-          title="Wallet Not Found"
-          accessoryLeft={() => (
-            <TopNavigationAction icon={BackIcon} onPress={() => router.back()} />
-          )}
-        />
-        <Layout style={styles.empty}>
-          <Text appearance="hint">This wallet doesn&apos;t exist.</Text>
-        </Layout>
-      </SafeAreaView>
+      <Box flex={1} bg="$backgroundLight0">
+        <SafeAreaView style={{ flex: 1 }} edges={['top']}>
+          <HStack
+            p="$4"
+            alignItems="center"
+            borderBottomWidth={1}
+            borderBottomColor="$borderLight200"
+          >
+            <Pressable onPress={() => router.back()} p="$2" mr="$2">
+              <Icon as={ArrowLeft} size="xl" color="$textLight900" />
+            </Pressable>
+            <Heading size="md">Wallet Not Found</Heading>
+          </HStack>
+          <Box flex={1} justifyContent="center" alignItems="center">
+            <Text color="$textLight500">This wallet doesn&apos;t exist.</Text>
+          </Box>
+        </SafeAreaView>
+      </Box>
     );
   }
 
@@ -89,109 +97,132 @@ export default function WalletDetailScreen() {
     );
   };
 
-  const BackAction = () => (
-    <TopNavigationAction icon={BackIcon} onPress={() => router.back()} />
-  );
-
-  const EditAction = () => (
-    <TopNavigationAction icon={EditIcon} onPress={() => setIsEditing(true)} />
-  );
-
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <TopNavigation
-        title="Wallet Details"
-        alignment="center"
-        accessoryLeft={BackAction}
-        accessoryRight={EditAction}
-      />
-
-      <Layout style={styles.content}>
-        <Card style={styles.balanceCard}>
-          <Text appearance="hint" category="s1">{wallet.name}</Text>
-          <Text category="h1" style={styles.balance}>{formatCurrency(wallet.balance)}</Text>
-        </Card>
-
-        <Button
-          style={styles.deleteButton}
-          status="danger"
-          appearance="outline"
-          accessoryLeft={TrashIcon}
-          onPress={handleDelete}
+    <Box flex={1} bg="$backgroundLight0">
+      <SafeAreaView style={{ flex: 1 }} edges={['top']}>
+        <HStack
+          p="$4"
+          alignItems="center"
+          justifyContent="space-between"
+          borderBottomWidth={1}
+          borderBottomColor="$borderLight200"
         >
-          Delete Wallet
-        </Button>
-      </Layout>
+          <HStack alignItems="center">
+            <Pressable onPress={() => router.back()} p="$2" mr="$2">
+              <Icon as={ArrowLeft} size="xl" color="$textLight900" />
+            </Pressable>
+            <Heading size="md">Wallet Details</Heading>
+          </HStack>
+          <Pressable onPress={() => setIsEditing(true)} p="$2">
+            <Icon as={Pencil} size="lg" color="$textLight900" />
+          </Pressable>
+        </HStack>
 
-      <Modal
-        visible={isEditing}
-        backdropStyle={styles.backdrop}
-        onBackdropPress={() => setIsEditing(false)}
-      >
-        <Card disabled style={styles.modal}>
-          <Text category="h6" style={styles.modalTitle}>Edit Wallet</Text>
-          <Input
-            label="Wallet Name"
-            value={editName}
-            onChangeText={setEditName}
-            autoFocus
-          />
-          <Layout style={styles.modalButtons}>
+        <VStack flex={1} p="$4">
+          <Box
+            bg="$white"
+            p="$6"
+            rounded="$xl"
+            alignItems="center"
+            mb="$6"
+            shadowColor="$black"
+            shadowOffset={{ width: 0, height: 2 }}
+            shadowOpacity={0.1}
+            shadowRadius={8}
+            elevation={2}
+          >
+            <Text size="sm" color="$textLight500" mb="$2">
+              {wallet.name}
+            </Text>
+            <Heading size="3xl">{formatCurrency(wallet.balance)}</Heading>
+          </Box>
+
+          <Box mt="auto">
             <Button
-              appearance="ghost"
-              onPress={() => {
-                setEditName(wallet.name);
-                setIsEditing(false);
-              }}
+              size="lg"
+              variant="outline"
+              action="negative"
+              onPress={handleDelete}
             >
-              Cancel
+              <ButtonIcon as={Trash2} mr="$2" />
+              <ButtonText>Delete Wallet</ButtonText>
             </Button>
-            <Button onPress={handleSave} disabled={isSubmitting}>
-              {isSubmitting ? 'Saving...' : 'Save'}
-            </Button>
-          </Layout>
-        </Card>
-      </Modal>
-    </SafeAreaView>
+          </Box>
+        </VStack>
+
+        <RNModal
+          visible={isEditing}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setIsEditing(false)}
+        >
+          <Pressable
+            style={styles.backdrop}
+            onPress={() => setIsEditing(false)}
+          >
+            <Pressable
+              onPress={(e) => e.stopPropagation()}
+              style={styles.modalContent}
+            >
+              <Box
+                bg="$white"
+                p="$6"
+                rounded="$xl"
+                minWidth={300}
+                shadowColor="$black"
+                shadowOffset={{ width: 0, height: 4 }}
+                shadowOpacity={0.2}
+                shadowRadius={16}
+                elevation={4}
+              >
+                <Heading size="lg" mb="$4">
+                  Edit Wallet
+                </Heading>
+                <VStack space="xs" mb="$4">
+                  <Text size="sm" fontWeight="$medium" color="$textLight700">
+                    Wallet Name
+                  </Text>
+                  <Input size="lg" variant="outline">
+                    <InputField
+                      value={editName}
+                      onChangeText={setEditName}
+                      autoFocus
+                    />
+                  </Input>
+                </VStack>
+                <HStack justifyContent="flex-end" space="sm">
+                  <Button
+                    variant="outline"
+                    action="secondary"
+                    onPress={() => {
+                      setEditName(wallet.name);
+                      setIsEditing(false);
+                    }}
+                  >
+                    <ButtonText>Cancel</ButtonText>
+                  </Button>
+                  <Button onPress={handleSave} isDisabled={isSubmitting}>
+                    <ButtonText>{isSubmitting ? 'Saving...' : 'Save'}</ButtonText>
+                  </Button>
+                </HStack>
+              </Box>
+            </Pressable>
+          </Pressable>
+        </RNModal>
+      </SafeAreaView>
+    </Box>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  backdrop: {
     flex: 1,
-  },
-  content: {
-    flex: 1,
-    padding: 16,
-  },
-  balanceCard: {
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  balance: {
-    marginTop: 8,
-  },
-  deleteButton: {
-    marginTop: 'auto',
-  },
-  empty: {
-    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  backdrop: {
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  modal: {
-    minWidth: 300,
-  },
-  modalTitle: {
-    marginBottom: 16,
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    marginTop: 16,
-    gap: 8,
+  modalContent: {
+    width: '90%',
+    maxWidth: 400,
   },
 });
