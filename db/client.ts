@@ -77,6 +77,11 @@ export async function initializeDatabase(): Promise<void> {
     expoDb.execSync("ALTER TABLE transactions ADD COLUMN status TEXT NOT NULL DEFAULT 'paid' CHECK (status IN ('paid', 'pending'))");
   } catch {
   }
+
+  try {
+    expoDb.execSync("ALTER TABLE transactions ADD COLUMN reminder_date INTEGER");
+  } catch {
+  }
 }
 
 export { schema };
