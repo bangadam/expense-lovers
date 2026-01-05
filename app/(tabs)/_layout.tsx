@@ -1,10 +1,10 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
+import { Ionicons } from '@expo/vector-icons';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { UIKittenIcon } from '@/components/ui-kitten-icon';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -21,7 +21,7 @@ export default function TabLayout() {
         options={{
           title: 'Home',
           tabBarIcon: ({ color }) => (
-            <UIKittenIcon name="home-outline" fill={color} style={{ width: 24, height: 24 }} />
+            <Ionicons name="home-outline" size={24} color={color} />
           ),
         }}
       />
@@ -30,7 +30,7 @@ export default function TabLayout() {
         options={{
           title: 'Settings',
           tabBarIcon: ({ color }) => (
-            <UIKittenIcon name="settings-outline" fill={color} style={{ width: 24, height: 24 }} />
+            <Ionicons name="settings-outline" size={24} color={color} />
           ),
         }}
       />

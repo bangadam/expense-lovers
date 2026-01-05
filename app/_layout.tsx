@@ -1,22 +1,22 @@
 // Polyfill for crypto.getRandomValues() required by uuid
 import 'react-native-get-random-values';
 
+import * as eva from '@eva-design/eva';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { ApplicationProvider, IconRegistry } from '@ui-kitten/components';
+import { EvaIconsPack } from '@ui-kitten/eva-icons';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import 'react-native-reanimated';
-import * as eva from '@eva-design/eva';
-import { ApplicationProvider, IconRegistry } from '@ui-kitten/components';
-import { EvaIconsPack } from '@ui-kitten/eva-icons';
 
 import { initializeDatabase, seedDefaultCategories } from '@/db';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { useWalletStore } from '@/stores/wallet-store';
 import { useCategoryStore } from '@/stores/category-store';
+import { getEffectiveColorScheme, useSettingsStore } from '@/stores/settings-store';
 import { useTransactionStore } from '@/stores/transaction-store';
-import { useSettingsStore, getEffectiveColorScheme } from '@/stores/settings-store';
+import { useWalletStore } from '@/stores/wallet-store';
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -63,7 +63,7 @@ export default function RootLayout() {
   return (
     <>
       <IconRegistry icons={EvaIconsPack} />
-      <ApplicationProvider eva={eva} theme={evaTheme}>
+      <ApplicationProvider {...eva} theme={evaTheme}>
         <ThemeProvider value={effectiveColorScheme === 'dark' ? DarkTheme : DefaultTheme}>
           <Stack>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
