@@ -1,10 +1,9 @@
 // Polyfill for crypto.getRandomValues() required by uuid
 import 'react-native-get-random-values';
 
-import * as eva from '@eva-design/eva';
+import { config } from '@gluestack-ui/config';
+import { GluestackUIProvider } from '@gluestack-ui/themed';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { ApplicationProvider, IconRegistry } from '@ui-kitten/components';
-import { EvaIconsPack } from '@ui-kitten/eva-icons';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
@@ -58,12 +57,9 @@ export default function RootLayout() {
     );
   }
 
-  const evaTheme = effectiveColorScheme === 'dark' ? eva.dark : eva.light;
-
   return (
     <>
-      <IconRegistry icons={EvaIconsPack} />
-      <ApplicationProvider {...eva} theme={evaTheme}>
+      <GluestackUIProvider config={config}>
         <ThemeProvider value={effectiveColorScheme === 'dark' ? DarkTheme : DefaultTheme}>
           <Stack>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
@@ -71,7 +67,7 @@ export default function RootLayout() {
           </Stack>
           <StatusBar style={effectiveColorScheme === 'dark' ? 'light' : 'dark'} />
         </ThemeProvider>
-      </ApplicationProvider>
+      </GluestackUIProvider>
     </>
   );
 }
