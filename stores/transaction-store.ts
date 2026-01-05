@@ -22,15 +22,7 @@ interface TransactionStore {
     reminderDate?: Date;
   }) => Promise<Transaction>;
   updateTransactionStatus: (id: string, status: 'paid' | 'pending') => Promise<void>;
-  setTransactionReminder: async (id: string, reminderDate: Date | null) => {
-    await db.update(transactions).set({ reminderDate }).where(eq(transactions.id, id));
-
-    set((state) => ({
-      transactions: state.transactions.map((t) =>
-        t.id === id ? { ...t, reminderDate: reminderDate || undefined } : t
-      ),
-    }));
-  },
+  setTransactionReminder: (id: string, reminderDate: Date | null) => Promise<void>;
   deleteTransaction: (id: string) => Promise<void>;
 
   // Getters
@@ -121,6 +113,16 @@ export const useTransactionStore = create<TransactionStore>((set, get) => ({
         reverseType
       );
     }
+  },
+
+  setTransactionReminder: async (id: string, reminderDate: Date | null) => {
+    await db.update(transactions).set({ reminderDate }).where(eq(transactions.id, id));
+
+    set((state) => ({
+      transactions: state.transactions.map((t) =>
+        t.id === id ? { ...t, reminderDate } : t
+      ),
+    }));
   },
 
   deleteTransaction: async (id: string) => {

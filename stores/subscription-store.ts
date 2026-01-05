@@ -10,7 +10,6 @@ interface SubscriptionStore {
   subscriptions: Subscription[];
   isLoading: boolean;
 
-  // Actions
   loadSubscriptions: () => Promise<void>;
   addSubscription: (data: {
     name: string;
@@ -24,8 +23,8 @@ interface SubscriptionStore {
   }) => Promise<Subscription>;
   updateSubscription: (id: string, data: Partial<NewSubscription>) => Promise<void>;
   deleteSubscription: (id: string) => Promise<void>;
+  markAsPaid: (id: string) => Promise<void>;
 
-  // Notification scheduling
   scheduleSubscriptionReminders: (subscription: Subscription) => Promise<void>;
   cancelSubscriptionReminders: (id: string) => Promise<void>;
   checkAndSendReminders: () => Promise<void>;
@@ -103,12 +102,19 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
   deleteSubscription: async (id: string) => {
     await db.delete(subscriptions).where(eq(subscriptions.id, id));
 
-    // Cancel reminders
     await get().cancelSubscriptionReminders(id);
 
     set((state) => ({
       subscriptions: state.subscriptions.filter((s) => s.id !== id),
     }));
+  },
+
+  markAsPaid: async (id: string) => {
+    const subscription = get().subscriptions.find((s) => s.id === id);
+    if (!subscription) return;
+
+    const nextDueDate = calculateNextDueDate(subscription.nextDueDate, subscription.cycle);
+    await get().updateSubscription(id, { nextDueDate });
   },
 
   scheduleSubscriptionReminders: async (subscription: Subscription) => {
@@ -125,7 +131,7 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
           body: `${subscription.name} is due in ${subscription.reminderDaysBefore} day(s). Amount: $${(subscription.amount / 100).toFixed(2)}`,
           sound: 'default',
         },
-        trigger: reminderDate,
+        trigger: { type: 'date', date: reminderDate } as Notifications.DateTriggerInput,
         identifier: `subscription-${subscription.id}`,
       });
     }
@@ -146,14 +152,16 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
       reminderDate.setDate(reminderDate.getDate() - subscription.reminderDaysBefore);
 
       if (reminderDate <= now && reminderDate > new Date(now.getTime() - 24 * 60 * 60 * 1000)) {
-        // Send immediate notification
-        await Notifications.presentNotificationAsync({
-          title: `Subscription Due Soon: ${subscription.name}`,
-          body: `${subscription.name} is due today or tomorrow. Amount: $${(subscription.amount / 100).toFixed(2)}`,
-          sound: 'default',
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title: `Subscription Due Soon: ${subscription.name}`,
+            body: `${subscription.name} is due today or tomorrow. Amount: $${(subscription.amount / 100).toFixed(2)}`,
+            sound: 'default',
+          },
+          trigger: null,
+          identifier: `subscription-immediate-${subscription.id}`,
         });
 
-        // Update next due date
         const nextDueDate = calculateNextDueDate(subscription.nextDueDate, subscription.cycle);
         await get().updateSubscription(subscription.id, { nextDueDate });
       }
@@ -189,5 +197,7 @@ Notifications.setNotificationHandler({
     shouldShowAlert: true,
     shouldPlaySound: true,
     shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
   }),
 });
