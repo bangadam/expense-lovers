@@ -16,13 +16,16 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useWalletStore } from '@/stores/wallet-store';
 import { useCategoryStore } from '@/stores/category-store';
 import { useTransactionStore } from '@/stores/transaction-store';
+import { useSettingsStore, getEffectiveColorScheme } from '@/stores/settings-store';
 
 export const unstable_settings = {
   anchor: '(tabs)',
 };
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
+  const systemColorScheme = useColorScheme();
+  const themeMode = useSettingsStore((state) => state.themeMode);
+  const effectiveColorScheme = getEffectiveColorScheme(themeMode, systemColorScheme);
   const [isDbReady, setIsDbReady] = useState(false);
 
   useEffect(() => {
@@ -55,18 +58,18 @@ export default function RootLayout() {
     );
   }
 
-  const evaTheme = colorScheme === 'dark' ? eva.dark : eva.light;
+  const evaTheme = effectiveColorScheme === 'dark' ? eva.dark : eva.light;
 
   return (
     <>
       <IconRegistry icons={EvaIconsPack} />
       <ApplicationProvider {...eva} theme={evaTheme}>
-        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <ThemeProvider value={effectiveColorScheme === 'dark' ? DarkTheme : DefaultTheme}>
           <Stack>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
           </Stack>
-          <StatusBar style="auto" />
+          <StatusBar style={effectiveColorScheme === 'dark' ? 'light' : 'dark'} />
         </ThemeProvider>
       </ApplicationProvider>
     </>
