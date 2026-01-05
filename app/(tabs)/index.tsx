@@ -1,7 +1,19 @@
 import React, { useMemo, useRef, useCallback } from 'react';
-import { StyleSheet, ScrollView, Pressable } from 'react-native';
-import { Layout, Text, Card, Button, List, ListItem, Divider } from '@ui-kitten/components';
-import { Ionicons } from '@expo/vector-icons';
+import { StyleSheet, ScrollView } from 'react-native';
+import {
+  Box,
+  Text,
+  VStack,
+  HStack,
+  Heading,
+  Fab,
+  FabIcon,
+  Button,
+  ButtonText,
+  Icon,
+  Pressable,
+} from '@gluestack-ui/themed';
+import { Plus, Wallet, ChevronRight } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Link } from 'expo-router';
 import BottomSheet from '@gorhom/bottom-sheet';
@@ -39,9 +51,6 @@ function getGreeting(): string {
   return 'Good evening';
 }
 
-const PlusIcon = (props: any) => <Ionicons name="add-outline" size={props.style?.width || 24} color={props.fill || props.color || '#000'} />;
-const WalletIcon = (props: any) => <Ionicons name="card-outline" size={props.style?.width || 24} color={props.fill || props.color || '#000'} />;
-
 export default function HomeScreen() {
   const bottomSheetRef = useRef<BottomSheet>(null);
 
@@ -73,173 +82,186 @@ export default function HomeScreen() {
     bottomSheetRef.current?.close();
   };
 
-  const renderTransaction = ({ item }: any) => (
-    <ListItem
-      title={getCategoryName(item.categoryId)}
-      description={`${getWalletName(item.walletId)} • ${formatDate(new Date(item.date))}`}
-      accessoryRight={() => (
-        <Text
-          status={item.type === 'income' ? 'success' : 'danger'}
-          category="s1"
-        >
-          {item.type === 'income' ? '+' : '-'}{formatCurrency(item.amount)}
-        </Text>
-      )}
-    />
-  );
-
   return (
-    <GestureHandlerRootView style={styles.container}>
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-          <Layout style={styles.content}>
-            <Text category="h5" style={styles.greeting}>{getGreeting()}</Text>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <Box flex={1} bg="$backgroundLight0">
+        <SafeAreaView style={{ flex: 1 }} edges={['top']}>
+          <ScrollView
+            style={{ flex: 1 }}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 100 }}
+          >
+            <Box p="$4">
+              <Heading size="md" mb="$4">
+                {getGreeting()}
+              </Heading>
 
-            <Card style={styles.balanceCard}>
-              <Text appearance="hint" category="s1">Total Balance</Text>
-              <Text category="h1" style={styles.balanceAmount}>
-                {formatCurrency(totalAssets)}
-              </Text>
-              <Text appearance="hint" category="c1">
-                {wallets.length} {wallets.length === 1 ? 'wallet' : 'wallets'}
-              </Text>
-            </Card>
+              <Box
+                bg="$white"
+                p="$6"
+                rounded="$xl"
+                alignItems="center"
+                mb="$6"
+                shadowColor="$black"
+                shadowOffset={{ width: 0, height: 2 }}
+                shadowOpacity={0.1}
+                shadowRadius={8}
+                elevation={2}
+              >
+                <Text size="sm" color="$textLight500" mb="$2">
+                  Total Balance
+                </Text>
+                <Heading size="3xl" mb="$2">
+                  {formatCurrency(totalAssets)}
+                </Heading>
+                <Text size="xs" color="$textLight400">
+                  {wallets.length} {wallets.length === 1 ? 'wallet' : 'wallets'}
+                </Text>
+              </Box>
 
-            <Layout style={styles.section}>
-              <Layout style={styles.sectionHeader}>
-                <Text category="h6">Wallets</Text>
-                <Link href="/wallet/create" asChild>
-                  <Button size="tiny" appearance="ghost" accessoryLeft={PlusIcon}>
-                    Add
-                  </Button>
-                </Link>
-              </Layout>
-
-              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                {wallets.map((wallet) => (
-                  <Link key={wallet.id} href={`/wallet/${wallet.id}`} asChild>
+              <Box mb="$6">
+                <HStack justifyContent="space-between" alignItems="center" mb="$3">
+                  <Heading size="sm">Wallets</Heading>
+                  <Link href="/wallet/create" asChild>
                     <Pressable>
-                      <Card style={styles.walletCard}>
-                        <Layout style={styles.walletCardContent}>
-                          <WalletIcon style={styles.walletIcon} fill="#8F9BB3" />
-                          <Text category="s2" appearance="hint">{wallet.name}</Text>
-                          <Text category="s1">{formatCurrency(wallet.balance)}</Text>
-                        </Layout>
-                      </Card>
+                      <HStack alignItems="center" space="xs">
+                        <Icon as={Plus} size="sm" color="$primary500" />
+                        <Text color="$primary500" size="sm" fontWeight="$medium">Add</Text>
+                      </HStack>
                     </Pressable>
                   </Link>
-                ))}
-                {wallets.length === 0 && (
-                  <Link href="/wallet/create" asChild>
-                    <Card style={styles.walletCard}>
-                      <Layout style={styles.walletCardContent}>
-                        <PlusIcon style={styles.walletIcon} fill="#8F9BB3" />
-                        <Text category="s2" appearance="hint">Add Wallet</Text>
-                      </Layout>
-                    </Card>
+                </HStack>
+
+                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                  <HStack space="md">
+                    {wallets.map((wallet) => (
+                      <Link key={wallet.id} href={`/wallet/${wallet.id}`} asChild>
+                        <Pressable>
+                          <Box
+                            bg="$white"
+                            p="$4"
+                            rounded="$lg"
+                            minWidth={120}
+                            alignItems="center"
+                            shadowColor="$black"
+                            shadowOffset={{ width: 0, height: 1 }}
+                            shadowOpacity={0.05}
+                            shadowRadius={4}
+                            elevation={1}
+                          >
+                            <Box mb="$2" p="$2" bg="$backgroundLight100" rounded="$full">
+                              <Icon as={Wallet} size="md" color="$textLight500" />
+                            </Box>
+                            <Text size="sm" color="$textLight500" mb="$1">
+                              {wallet.name}
+                            </Text>
+                            <Text fontWeight="$bold" color="$textLight900">
+                              {formatCurrency(wallet.balance)}
+                            </Text>
+                          </Box>
+                        </Pressable>
+                      </Link>
+                    ))}
+                    {wallets.length === 0 && (
+                      <Link href="/wallet/create" asChild>
+                        <Pressable>
+                          <Box
+                            bg="$white"
+                            p="$4"
+                            rounded="$lg"
+                            minWidth={120}
+                            alignItems="center"
+                            borderWidth={1}
+                            borderColor="$borderLight200"
+                            borderStyle="dashed"
+                          >
+                            <Box mb="$2" p="$2" bg="$backgroundLight50" rounded="$full">
+                              <Icon as={Plus} size="md" color="$textLight400" />
+                            </Box>
+                            <Text size="sm" color="$textLight400">
+                              Add Wallet
+                            </Text>
+                          </Box>
+                        </Pressable>
+                      </Link>
+                    )}
+                  </HStack>
+                </ScrollView>
+              </Box>
+
+              <Box>
+                <HStack justifyContent="space-between" alignItems="center" mb="$3">
+                  <Heading size="sm">Recent Transactions</Heading>
+                  <Link href="/history" asChild>
+                    <Pressable>
+                      <Text color="$primary500" size="sm" fontWeight="$medium">See All</Text>
+                    </Pressable>
                   </Link>
+                </HStack>
+
+                {recentTransactions.length === 0 ? (
+                  <Box
+                    bg="$white"
+                    p="$6"
+                    rounded="$lg"
+                    alignItems="center"
+                  >
+                    <Text color="$textLight400" textAlign="center">
+                      No transactions yet. Tap + to add one.
+                    </Text>
+                  </Box>
+                ) : (
+                  <Box bg="$white" rounded="$lg" overflow="hidden">
+                    {recentTransactions.map((item, index) => (
+                      <Box key={item.id}>
+                        <HStack
+                          p="$4"
+                          justifyContent="space-between"
+                          alignItems="center"
+                        >
+                          <VStack>
+                            <Text fontWeight="$medium" color="$textLight900">
+                              {getCategoryName(item.categoryId)}
+                            </Text>
+                            <Text size="xs" color="$textLight500">
+                              {getWalletName(item.walletId)} • {formatDate(new Date(item.date))}
+                            </Text>
+                          </VStack>
+                          <Text
+                            fontWeight="$bold"
+                            color={item.type === 'income' ? '$success600' : '$error600'}
+                          >
+                            {item.type === 'income' ? '+' : '-'}{formatCurrency(item.amount)}
+                          </Text>
+                        </HStack>
+                        {index < recentTransactions.length - 1 && (
+                          <Box h={1} bg="$borderLight100" />
+                        )}
+                      </Box>
+                    ))}
+                  </Box>
                 )}
-              </ScrollView>
-            </Layout>
+              </Box>
+            </Box>
+          </ScrollView>
 
-            <Layout style={styles.section}>
-              <Layout style={styles.sectionHeader}>
-                <Text category="h6">Recent Transactions</Text>
-                <Link href="/history" asChild>
-                  <Button size="tiny" appearance="ghost">See All</Button>
-                </Link>
-              </Layout>
+          <Fab
+            size="lg"
+            placement="bottom right"
+            isHovered={false}
+            isDisabled={false}
+            isPressed={false}
+            onPress={handleOpenSheet}
+            mb="$4"
+            mr="$4"
+          >
+            <FabIcon as={Plus} />
+          </Fab>
 
-              {recentTransactions.length === 0 ? (
-                <Card>
-                  <Text appearance="hint" style={styles.emptyText}>
-                    No transactions yet. Tap + to add one.
-                  </Text>
-                </Card>
-              ) : (
-                <Card style={styles.transactionCard}>
-                  <List
-                    data={recentTransactions}
-                    renderItem={renderTransaction}
-                    ItemSeparatorComponent={Divider}
-                    scrollEnabled={false}
-                  />
-                </Card>
-              )}
-            </Layout>
-          </Layout>
-        </ScrollView>
-
-        <Button
-          style={styles.fab}
-          size="giant"
-          status="primary"
-          accessoryLeft={PlusIcon}
-          onPress={handleOpenSheet}
-        />
-
-        <AddTransactionSheet ref={bottomSheetRef} onClose={handleCloseSheet} />
-      </SafeAreaView>
+          <AddTransactionSheet ref={bottomSheetRef} onClose={handleCloseSheet} />
+        </SafeAreaView>
+      </Box>
     </GestureHandlerRootView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  content: {
-    padding: 16,
-    paddingBottom: 100,
-  },
-  greeting: {
-    marginBottom: 16,
-  },
-  balanceCard: {
-    marginBottom: 24,
-    alignItems: 'center',
-  },
-  balanceAmount: {
-    marginVertical: 8,
-  },
-  section: {
-    marginBottom: 24,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  walletCard: {
-    marginRight: 12,
-    minWidth: 120,
-  },
-  walletCardContent: {
-    alignItems: 'center',
-    gap: 4,
-  },
-  walletIcon: {
-    width: 24,
-    height: 24,
-    marginBottom: 4,
-  },
-  transactionCard: {
-    padding: 0,
-  },
-  emptyText: {
-    textAlign: 'center',
-    padding: 16,
-  },
-  fab: {
-    position: 'absolute',
-    right: 16,
-    bottom: 16,
-    borderRadius: 28,
-    width: 56,
-    height: 56,
-  },
-});

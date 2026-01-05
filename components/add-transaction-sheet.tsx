@@ -1,7 +1,29 @@
 import React, { forwardRef, useCallback, useMemo, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from '@gorhom/bottom-sheet';
-import { Button, Input, Text, ButtonGroup, Select, SelectItem, IndexPath } from '@ui-kitten/components';
+import {
+  Button,
+  ButtonText,
+  Input,
+  InputField,
+  Text,
+  VStack,
+  HStack,
+  Select,
+  SelectTrigger,
+  SelectInput,
+  SelectIcon,
+  SelectPortal,
+  SelectBackdrop,
+  SelectContent,
+  SelectDragIndicatorWrapper,
+  SelectDragIndicator,
+  SelectItem,
+  Icon,
+  Heading,
+  Box,
+} from '@gluestack-ui/themed';
+import { ChevronDown } from 'lucide-react-native';
 
 import { useWalletStore } from '@/stores/wallet-store';
 import { useCategoryStore } from '@/stores/category-store';
@@ -19,14 +41,19 @@ const AddTransactionSheet = forwardRef<BottomSheet, AddTransactionSheetProps>(
 
     const [type, setType] = useState<'expense' | 'income'>('expense');
     const [amount, setAmount] = useState('');
-    const [walletIndex, setWalletIndex] = useState<IndexPath>(new IndexPath(0));
-    const [categoryIndex, setCategoryIndex] = useState<IndexPath | undefined>();
+    const [selectedWalletId, setSelectedWalletId] = useState<string | undefined>(
+      wallets.length > 0 ? wallets[0].id : undefined
+    );
+    const [selectedCategoryId, setSelectedCategoryId] = useState<string | undefined>();
     const [note, setNote] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
     const snapPoints = useMemo(() => ['70%'], []);
 
-    const filteredCategories = categories.filter((c) => c.type === type);
+    const filteredCategories = useMemo(
+      () => categories.filter((c) => c.type === type),
+      [categories, type]
+    );
 
     const renderBackdrop = useCallback(
       (props: any) => (
@@ -46,21 +73,21 @@ const AddTransactionSheet = forwardRef<BottomSheet, AddTransactionSheetProps>(
     const handleSubmit = async () => {
       const amountValue = parseFloat(amount);
       if (!amountValue || amountValue <= 0) return;
-      if (!wallets[walletIndex.row]) return;
-      if (!categoryIndex || !filteredCategories[categoryIndex.row]) return;
+      if (!selectedWalletId) return;
+      if (!selectedCategoryId) return;
 
       setIsLoading(true);
       try {
         await addTransaction({
           type,
           amount: amountValue,
-          walletId: wallets[walletIndex.row].id,
-          categoryId: filteredCategories[categoryIndex.row].id,
+          walletId: selectedWalletId,
+          categoryId: selectedCategoryId,
           note: note.trim() || undefined,
           date: new Date(),
         });
         setAmount('');
-        setCategoryIndex(undefined);
+        setSelectedCategoryId(undefined);
         setNote('');
         onClose();
       } catch (error) {
@@ -70,9 +97,19 @@ const AddTransactionSheet = forwardRef<BottomSheet, AddTransactionSheetProps>(
       }
     };
 
-    const handleTypeChange = (index: number) => {
-      setType(index === 0 ? 'expense' : 'income');
-      setCategoryIndex(undefined);
+    const handleTypeChange = (newType: 'expense' | 'income') => {
+      setType(newType);
+      setSelectedCategoryId(undefined);
+    };
+
+    const getWalletName = (id: string | undefined) => {
+      if (!id) return '';
+      return wallets.find((w) => w.id === id)?.name || '';
+    };
+
+    const getCategoryName = (id: string | undefined) => {
+      if (!id) return '';
+      return categories.find((c) => c.id === id)?.name || '';
     };
 
     return (
@@ -85,80 +122,125 @@ const AddTransactionSheet = forwardRef<BottomSheet, AddTransactionSheetProps>(
         onClose={onClose}
       >
         <BottomSheetView style={styles.content}>
-          <Text category="h6" style={styles.title}>Add Transaction</Text>
+          <Box flex={1} px="$4" pb="$4">
+            <Heading size="md" textAlign="center" mb="$4">
+              Add Transaction
+            </Heading>
 
-          <ButtonGroup style={styles.typeToggle} size="medium">
+            <HStack space="md" mb="$5" justifyContent="center">
+              <Button
+                variant={type === 'expense' ? 'solid' : 'outline'}
+                action={type === 'expense' ? 'negative' : 'secondary'}
+                onPress={() => handleTypeChange('expense')}
+                flex={1}
+              >
+                <ButtonText>Expense</ButtonText>
+              </Button>
+              <Button
+                variant={type === 'income' ? 'solid' : 'outline'}
+                action={type === 'income' ? 'positive' : 'secondary'}
+                onPress={() => handleTypeChange('income')}
+                flex={1}
+              >
+                <ButtonText>Income</ButtonText>
+              </Button>
+            </HStack>
+
+            <Input size="xl" variant="underlined" mb="$5" alignItems="center">
+              <InputField
+                placeholder="0.00"
+                value={amount}
+                onChangeText={(text) => setAmount(formatAmount(text))}
+                keyboardType="decimal-pad"
+                textAlign="center"
+                fontSize="$3xl"
+                fontWeight="$bold"
+              />
+            </Input>
+
+            <VStack space="md" mb="$4">
+              <VStack space="xs">
+                <Text size="sm" color="$textLight500">
+                  Wallet
+                </Text>
+                <Select
+                  selectedValue={selectedWalletId}
+                  onValueChange={setSelectedWalletId}
+                >
+                  <SelectTrigger variant="outline" size="md">
+                    <SelectInput placeholder="Select wallet" value={getWalletName(selectedWalletId)} />
+                    <SelectIcon mr="$3" as={ChevronDown} />
+                  </SelectTrigger>
+                  <SelectPortal>
+                    <SelectBackdrop />
+                    <SelectContent>
+                      <SelectDragIndicatorWrapper>
+                        <SelectDragIndicator />
+                      </SelectDragIndicatorWrapper>
+                      {wallets.map((wallet) => (
+                        <SelectItem key={wallet.id} label={wallet.name} value={wallet.id} />
+                      ))}
+                    </SelectContent>
+                  </SelectPortal>
+                </Select>
+              </VStack>
+
+              <VStack space="xs">
+                <Text size="sm" color="$textLight500">
+                  Category
+                </Text>
+                <Select
+                  selectedValue={selectedCategoryId}
+                  onValueChange={setSelectedCategoryId}
+                >
+                  <SelectTrigger variant="outline" size="md">
+                    <SelectInput
+                      placeholder="Select category"
+                      value={getCategoryName(selectedCategoryId)}
+                    />
+                    <SelectIcon mr="$3" as={ChevronDown} />
+                  </SelectTrigger>
+                  <SelectPortal>
+                    <SelectBackdrop />
+                    <SelectContent>
+                      <SelectDragIndicatorWrapper>
+                        <SelectDragIndicator />
+                      </SelectDragIndicatorWrapper>
+                      {filteredCategories.map((category) => (
+                        <SelectItem key={category.id} label={category.name} value={category.id} />
+                      ))}
+                    </SelectContent>
+                  </SelectPortal>
+                </Select>
+              </VStack>
+
+              <VStack space="xs">
+                <Text size="sm" color="$textLight500">
+                  Note (optional)
+                </Text>
+                <Input variant="outline" size="md">
+                  <InputField
+                    placeholder="Add a note..."
+                    value={note}
+                    onChangeText={(text) => setNote(text.slice(0, 100))}
+                    maxLength={100}
+                  />
+                </Input>
+              </VStack>
+            </VStack>
+
             <Button
-              onPress={() => handleTypeChange(0)}
-              appearance={type === 'expense' ? 'filled' : 'outline'}
-              status="danger"
+              size="lg"
+              action={type === 'expense' ? 'negative' : 'positive'}
+              onPress={handleSubmit}
+              isDisabled={isLoading || !amount || !selectedWalletId || !selectedCategoryId}
+              mt="auto"
             >
-              Expense
+              <ButtonText>
+                {isLoading ? 'Adding...' : `Add ${type === 'expense' ? 'Expense' : 'Income'}`}
+              </ButtonText>
             </Button>
-            <Button
-              onPress={() => handleTypeChange(1)}
-              appearance={type === 'income' ? 'filled' : 'outline'}
-              status="success"
-            >
-              Income
-            </Button>
-          </ButtonGroup>
-
-          <Input
-            style={styles.amountInput}
-            placeholder="0.00"
-            value={amount}
-            onChangeText={(text) => setAmount(formatAmount(text))}
-            keyboardType="decimal-pad"
-            size="large"
-            textStyle={styles.amountText}
-            textAlign="center"
-          />
-
-          <Select
-            style={styles.select}
-            label="Wallet"
-            placeholder="Select wallet"
-            value={wallets[walletIndex.row]?.name}
-            selectedIndex={walletIndex}
-            onSelect={(index) => setWalletIndex(index as IndexPath)}
-          >
-            {wallets.map((wallet) => (
-              <SelectItem key={wallet.id} title={wallet.name} />
-            ))}
-          </Select>
-
-          <Select
-            style={styles.select}
-            label="Category"
-            placeholder="Select category"
-            value={categoryIndex ? filteredCategories[categoryIndex.row]?.name : undefined}
-            selectedIndex={categoryIndex}
-            onSelect={(index) => setCategoryIndex(index as IndexPath)}
-          >
-            {filteredCategories.map((category) => (
-              <SelectItem key={category.id} title={category.name} />
-            ))}
-          </Select>
-
-          <Input
-            style={styles.noteInput}
-            label="Note (optional)"
-            placeholder="Add a note..."
-            value={note}
-            onChangeText={(text) => setNote(text.slice(0, 100))}
-            maxLength={100}
-          />
-
-          <Button
-            style={styles.submitButton}
-            size="large"
-            status={type === 'expense' ? 'danger' : 'success'}
-            onPress={handleSubmit}
-            disabled={isLoading || !amount}
-          >
-            {isLoading ? 'Adding...' : `Add ${type === 'expense' ? 'Expense' : 'Income'}`}
-          </Button>
+          </Box>
         </BottomSheetView>
       </BottomSheet>
     );
@@ -172,30 +254,5 @@ export { AddTransactionSheet };
 const styles = StyleSheet.create({
   content: {
     flex: 1,
-    padding: 16,
-  },
-  title: {
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  typeToggle: {
-    marginBottom: 20,
-    alignSelf: 'center',
-  },
-  amountInput: {
-    marginBottom: 20,
-  },
-  amountText: {
-    fontSize: 32,
-    fontWeight: '600',
-  },
-  select: {
-    marginBottom: 16,
-  },
-  noteInput: {
-    marginBottom: 20,
-  },
-  submitButton: {
-    marginTop: 'auto',
   },
 });
