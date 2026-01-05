@@ -1,4 +1,4 @@
-import React, { forwardRef, useCallback, useMemo, useState } from 'react';
+import React, { forwardRef, useCallback, useEffect, useMemo, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from '@gorhom/bottom-sheet';
 import {
@@ -40,12 +40,16 @@ const AddTransactionSheet = forwardRef<BottomSheet, AddTransactionSheetProps>(
 
     const [type, setType] = useState<'expense' | 'income'>('expense');
     const [amount, setAmount] = useState('');
-    const [selectedWalletId, setSelectedWalletId] = useState<string | undefined>(
-      wallets.length > 0 ? wallets[0].id : undefined
-    );
+    const [selectedWalletId, setSelectedWalletId] = useState<string | undefined>(undefined);
     const [selectedCategoryId, setSelectedCategoryId] = useState<string | undefined>();
     const [note, setNote] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+      if (wallets.length > 0 && !selectedWalletId) {
+        setSelectedWalletId(wallets[0].id);
+      }
+    }, [wallets, selectedWalletId]);
 
     const snapPoints = useMemo(() => ['70%'], []);
 

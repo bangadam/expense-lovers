@@ -55,6 +55,7 @@ export const useTransactionStore = create<TransactionStore>((set, get) => ({
       categoryId: data.categoryId,
       note: data.note ?? null,
       date: data.date ?? now,
+      reminderDate: data.reminderDate ?? null,
       createdAt: now,
     };
 

@@ -34,7 +34,7 @@ export const useWalletStore = create<WalletStore>((set, get) => ({
     const newWallet: NewWallet = {
       id: uuidv4(),
       name,
-      balance: Math.round(initialBalance * 100), // Convert to cents
+      balance: initialBalance,
       createdAt: now,
       updatedAt: now,
     };
