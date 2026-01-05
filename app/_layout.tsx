@@ -63,7 +63,7 @@ export default function RootLayout() {
   return (
     <>
       <IconRegistry icons={EvaIconsPack} />
-      <ApplicationProvider {...eva} theme={evaTheme}>
+      <ApplicationProvider eva={eva} theme={evaTheme}>
         <ThemeProvider value={effectiveColorScheme === 'dark' ? DarkTheme : DefaultTheme}>
           <Stack>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
