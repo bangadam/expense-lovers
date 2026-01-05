@@ -1,156 +1,185 @@
-import { useMemo } from 'react';
-import { StyleSheet, View, Pressable, ScrollView } from 'react-native';
-import { Link } from 'expo-router';
+import React, { useMemo, useRef, useCallback } from 'react';
+import { StyleSheet, ScrollView, Pressable } from 'react-native';
+import { Layout, Text, Card, Button, Icon, List, ListItem, Divider } from '@ui-kitten/components';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Link } from 'expo-router';
+import BottomSheet from '@gorhom/bottom-sheet';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useWalletStore } from '@/stores/wallet-store';
 import { useTransactionStore } from '@/stores/transaction-store';
 import { useCategoryStore } from '@/stores/category-store';
+import { AddTransactionSheet } from '@/components/add-transaction-sheet';
 
 function formatCurrency(cents: number): string {
-  const amount = cents / 100;
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
-  }).format(amount);
+  }).format(cents / 100);
 }
 
 function formatDate(date: Date): string {
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric',
-  }).format(date);
+  const now = new Date();
+  const transDate = new Date(date);
+
+  if (transDate.toDateString() === now.toDateString()) return 'Today';
+
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  if (transDate.toDateString() === yesterday.toDateString()) return 'Yesterday';
+
+  return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(transDate);
 }
 
+function getGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good morning';
+  if (hour < 18) return 'Good afternoon';
+  return 'Good evening';
+}
+
+const PlusIcon = (props: any) => <Icon {...props} name="plus-outline" />;
+const WalletIcon = (props: any) => <Icon {...props} name="credit-card-outline" />;
+
 export default function HomeScreen() {
-  const colorScheme = useColorScheme() ?? 'light';
+  const bottomSheetRef = useRef<BottomSheet>(null);
+
   const wallets = useWalletStore((state) => state.wallets);
   const allTransactions = useTransactionStore((state) => state.transactions);
   const categories = useCategoryStore((state) => state.categories);
 
-  // Memoize derived values to avoid infinite loops
   const totalAssets = useMemo(() => {
     return wallets.reduce((sum, w) => sum + w.balance, 0);
   }, [wallets]);
 
   const recentTransactions = useMemo(() => {
-    return allTransactions.slice(0, 10);
+    return allTransactions.slice(0, 5);
   }, [allTransactions]);
 
-  const getCategoryName = (categoryId: string) => {
+  const getCategoryName = useCallback((categoryId: string) => {
     return categories.find((c) => c.id === categoryId)?.name ?? 'Unknown';
+  }, [categories]);
+
+  const getWalletName = useCallback((walletId: string) => {
+    return wallets.find((w) => w.id === walletId)?.name ?? 'Unknown';
+  }, [wallets]);
+
+  const handleOpenSheet = () => {
+    bottomSheetRef.current?.expand();
   };
 
-  const getWalletName = (walletId: string) => {
-    return wallets.find((w) => w.id === walletId)?.name ?? 'Unknown';
+  const handleCloseSheet = () => {
+    bottomSheetRef.current?.close();
   };
+
+  const renderTransaction = ({ item }: any) => (
+    <ListItem
+      title={getCategoryName(item.categoryId)}
+      description={`${getWalletName(item.walletId)} • ${formatDate(new Date(item.date))}`}
+      accessoryRight={() => (
+        <Text
+          status={item.type === 'income' ? 'success' : 'danger'}
+          category="s1"
+        >
+          {item.type === 'income' ? '+' : '-'}{formatCurrency(item.amount)}
+        </Text>
+      )}
+    />
+  );
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <ThemedView style={styles.header}>
-          <ThemedText type="title">Expense Lovers</ThemedText>
-        </ThemedView>
+    <GestureHandlerRootView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+          <Layout style={styles.content}>
+            <Text category="h5" style={styles.greeting}>{getGreeting()}</Text>
 
-        {/* Total Assets Card */}
-        <ThemedView style={[styles.card, styles.totalCard]}>
-          <ThemedText style={styles.cardLabel}>Total Assets</ThemedText>
-          <ThemedText type="title" style={styles.totalAmount}>
-            {formatCurrency(totalAssets)}
-          </ThemedText>
-          <ThemedText style={styles.walletCount}>
-            {wallets.length} {wallets.length === 1 ? 'wallet' : 'wallets'}
-          </ThemedText>
-        </ThemedView>
+            <Card style={styles.balanceCard}>
+              <Text appearance="hint" category="s1">Total Balance</Text>
+              <Text category="h1" style={styles.balanceAmount}>
+                {formatCurrency(totalAssets)}
+              </Text>
+              <Text appearance="hint" category="c1">
+                {wallets.length} {wallets.length === 1 ? 'wallet' : 'wallets'}
+              </Text>
+            </Card>
 
-        {/* Wallets Section */}
-        <ThemedView style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <ThemedText type="subtitle">Wallets</ThemedText>
-            <Link href="/wallet/create" asChild>
-              <Pressable>
-                <ThemedText style={{ color: Colors[colorScheme].tint }}>+ Add</ThemedText>
-              </Pressable>
-            </Link>
-          </View>
-          {wallets.length === 0 ? (
-            <ThemedView style={styles.emptyState}>
-              <ThemedText style={styles.emptyText}>No wallets yet</ThemedText>
-              <Link href="/wallet/create" asChild>
-                <Pressable style={[styles.addButton, { backgroundColor: Colors[colorScheme].tint }]}>
-                  <ThemedText style={styles.addButtonText}>Create your first wallet</ThemedText>
-                </Pressable>
-              </Link>
-            </ThemedView>
-          ) : (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.walletList}>
-              {wallets.map((wallet) => (
-                <Link key={wallet.id} href={`/wallet/${wallet.id}`} asChild>
-                  <Pressable style={styles.walletCard}>
-                    <ThemedText style={styles.walletName}>{wallet.name}</ThemedText>
-                    <ThemedText type="defaultSemiBold">{formatCurrency(wallet.balance)}</ThemedText>
-                  </Pressable>
+            <Layout style={styles.section}>
+              <Layout style={styles.sectionHeader}>
+                <Text category="h6">Wallets</Text>
+                <Link href="/wallet/create" asChild>
+                  <Button size="tiny" appearance="ghost" accessoryLeft={PlusIcon}>
+                    Add
+                  </Button>
                 </Link>
-              ))}
-            </ScrollView>
-          )}
-        </ThemedView>
+              </Layout>
 
-        {/* Recent Transactions */}
-        <ThemedView style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <ThemedText type="subtitle">Recent Transactions</ThemedText>
-            <Link href="/history" asChild>
-              <Pressable>
-                <ThemedText style={{ color: Colors[colorScheme].tint }}>See all</ThemedText>
-              </Pressable>
-            </Link>
-          </View>
-          {recentTransactions.length === 0 ? (
-            <ThemedView style={styles.emptyState}>
-              <ThemedText style={styles.emptyText}>No transactions yet</ThemedText>
-            </ThemedView>
-          ) : (
-            <ThemedView>
-              {recentTransactions.map((transaction) => (
-                <ThemedView key={transaction.id} style={styles.transactionItem}>
-                  <View style={styles.transactionLeft}>
-                    <ThemedText type="defaultSemiBold">
-                      {getCategoryName(transaction.categoryId)}
-                    </ThemedText>
-                    <ThemedText style={styles.transactionMeta}>
-                      {getWalletName(transaction.walletId)} • {formatDate(new Date(transaction.date))}
-                    </ThemedText>
-                  </View>
-                  <ThemedText
-                    type="defaultSemiBold"
-                    style={{
-                      color: transaction.type === 'income' ? '#22c55e' : '#ef4444',
-                    }}
-                  >
-                    {transaction.type === 'income' ? '+' : '-'}
-                    {formatCurrency(transaction.amount)}
-                  </ThemedText>
-                </ThemedView>
-              ))}
-            </ThemedView>
-          )}
-        </ThemedView>
-      </ScrollView>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                {wallets.map((wallet) => (
+                  <Link key={wallet.id} href={`/wallet/${wallet.id}`} asChild>
+                    <Pressable>
+                      <Card style={styles.walletCard}>
+                        <Layout style={styles.walletCardContent}>
+                          <WalletIcon style={styles.walletIcon} fill="#8F9BB3" />
+                          <Text category="s2" appearance="hint">{wallet.name}</Text>
+                          <Text category="s1">{formatCurrency(wallet.balance)}</Text>
+                        </Layout>
+                      </Card>
+                    </Pressable>
+                  </Link>
+                ))}
+                {wallets.length === 0 && (
+                  <Link href="/wallet/create" asChild>
+                    <Card style={styles.walletCard}>
+                      <Layout style={styles.walletCardContent}>
+                        <PlusIcon style={styles.walletIcon} fill="#8F9BB3" />
+                        <Text category="s2" appearance="hint">Add Wallet</Text>
+                      </Layout>
+                    </Card>
+                  </Link>
+                )}
+              </ScrollView>
+            </Layout>
 
-      {/* FAB Button */}
-      <Link href="/transaction/create" asChild>
-        <Pressable style={[styles.fab, { backgroundColor: Colors[colorScheme].tint }]}>
-          <IconSymbol name="plus" size={28} color="#fff" />
-        </Pressable>
-      </Link>
-    </SafeAreaView>
+            <Layout style={styles.section}>
+              <Layout style={styles.sectionHeader}>
+                <Text category="h6">Recent Transactions</Text>
+                <Link href="/history" asChild>
+                  <Button size="tiny" appearance="ghost">See All</Button>
+                </Link>
+              </Layout>
+
+              {recentTransactions.length === 0 ? (
+                <Card>
+                  <Text appearance="hint" style={styles.emptyText}>
+                    No transactions yet. Tap + to add one.
+                  </Text>
+                </Card>
+              ) : (
+                <Card style={styles.transactionCard}>
+                  <List
+                    data={recentTransactions}
+                    renderItem={renderTransaction}
+                    ItemSeparatorComponent={Divider}
+                    scrollEnabled={false}
+                  />
+                </Card>
+              )}
+            </Layout>
+          </Layout>
+        </ScrollView>
+
+        <Button
+          style={styles.fab}
+          size="giant"
+          status="primary"
+          accessoryLeft={PlusIcon}
+          onPress={handleOpenSheet}
+        />
+
+        <AddTransactionSheet ref={bottomSheetRef} onClose={handleCloseSheet} />
+      </SafeAreaView>
+    </GestureHandlerRootView>
   );
 }
 
@@ -160,31 +189,20 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-    paddingHorizontal: 16,
   },
-  header: {
-    paddingVertical: 16,
+  content: {
+    padding: 16,
+    paddingBottom: 100,
   },
-  card: {
-    borderRadius: 16,
-    padding: 20,
+  greeting: {
     marginBottom: 16,
   },
-  totalCard: {
+  balanceCard: {
+    marginBottom: 24,
     alignItems: 'center',
   },
-  cardLabel: {
-    fontSize: 14,
-    opacity: 0.7,
-    marginBottom: 4,
-  },
-  totalAmount: {
-    fontSize: 36,
-    marginBottom: 4,
-  },
-  walletCount: {
-    fontSize: 14,
-    opacity: 0.7,
+  balanceAmount: {
+    marginVertical: 8,
   },
   section: {
     marginBottom: 24,
@@ -195,68 +213,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
-  emptyState: {
+  walletCard: {
+    marginRight: 12,
+    minWidth: 120,
+  },
+  walletCardContent: {
     alignItems: 'center',
-    padding: 24,
-    borderRadius: 12,
+    gap: 4,
+  },
+  walletIcon: {
+    width: 24,
+    height: 24,
+    marginBottom: 4,
+  },
+  transactionCard: {
+    padding: 0,
   },
   emptyText: {
-    opacity: 0.6,
-    marginBottom: 12,
-  },
-  addButton: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 8,
-  },
-  addButtonText: {
-    color: '#fff',
-    fontWeight: '600',
-  },
-  walletList: {
-    marginHorizontal: -16,
-    paddingHorizontal: 16,
-  },
-  walletCard: {
+    textAlign: 'center',
     padding: 16,
-    borderRadius: 12,
-    marginRight: 12,
-    minWidth: 140,
-    backgroundColor: 'rgba(128, 128, 128, 0.1)',
-  },
-  walletName: {
-    marginBottom: 8,
-    opacity: 0.7,
-  },
-  transactionItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(128, 128, 128, 0.3)',
-  },
-  transactionLeft: {
-    flex: 1,
-  },
-  transactionMeta: {
-    fontSize: 12,
-    opacity: 0.6,
-    marginTop: 2,
   },
   fab: {
     position: 'absolute',
-    right: 20,
-    bottom: 20,
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
+    right: 16,
+    bottom: 16,
+    borderRadius: 28,
+    width: 56,
+    height: 56,
   },
 });
