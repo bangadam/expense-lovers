@@ -1,6 +1,7 @@
 import React, { useMemo, useRef, useCallback } from 'react';
 import { StyleSheet, ScrollView, Pressable } from 'react-native';
-import { Layout, Text, Card, Button, Icon, List, ListItem, Divider } from '@ui-kitten/components';
+import { Layout, Text, Card, Button, List, ListItem, Divider } from '@ui-kitten/components';
+import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Link } from 'expo-router';
 import BottomSheet from '@gorhom/bottom-sheet';
@@ -38,8 +39,8 @@ function getGreeting(): string {
   return 'Good evening';
 }
 
-const PlusIcon = (props: any) => <Icon {...props} name="plus-outline" />;
-const WalletIcon = (props: any) => <Icon {...props} name="credit-card-outline" />;
+const PlusIcon = (props: any) => <Ionicons name="add-outline" size={props.style?.width || 24} color={props.fill || props.color || '#000'} />;
+const WalletIcon = (props: any) => <Ionicons name="card-outline" size={props.style?.width || 24} color={props.fill || props.color || '#000'} />;
 
 export default function HomeScreen() {
   const bottomSheetRef = useRef<BottomSheet>(null);
