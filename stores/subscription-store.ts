@@ -113,6 +113,19 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
     const subscription = get().subscriptions.find((s) => s.id === id);
     if (!subscription) return;
 
+    // Create a transaction for this payment
+    const { useTransactionStore } = await import('./transaction-store');
+    await useTransactionStore.getState().addTransaction({
+      type: 'expense',
+      status: 'paid',
+      amount: subscription.amount / 100, // Convert from cents to dollars
+      walletId: subscription.walletId,
+      categoryId: subscription.categoryId,
+      note: `Subscription: ${subscription.name}`,
+      date: new Date(),
+    });
+
+    // Update the next due date
     const nextDueDate = calculateNextDueDate(subscription.nextDueDate, subscription.cycle);
     await get().updateSubscription(id, { nextDueDate });
   },

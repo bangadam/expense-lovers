@@ -80,10 +80,13 @@ export default function RootLayout() {
 
   return (
     <>
-      <GluestackUIProvider config={config}>
+      <GluestackUIProvider config={config} colorMode={effectiveColorScheme}>
         <ThemeProvider value={effectiveColorScheme === 'dark' ? DarkTheme : DefaultTheme}>
           <Stack>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="subscription/create" options={{ title: 'Add Subscription' }} />
+            <Stack.Screen name="wallet/create" options={{ title: 'Add Wallet' }} />
+            <Stack.Screen name="wallet/[id]" options={{ title: 'Wallet Details' }} />
             <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
           </Stack>
           <StatusBar style={effectiveColorScheme === 'dark' ? 'light' : 'dark'} />
