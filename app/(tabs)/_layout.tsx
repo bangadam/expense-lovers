@@ -30,13 +30,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => <Home color={color} size={size} />,
         }}
       />
-      <Tabs.Screen
-        name="history"
-        options={{
-          title: 'History',
-          tabBarIcon: ({ color, size }) => <Clock color={color} size={size} />,
-        }}
-      />
+
       <Tabs.Screen
         name="settings"
         options={{

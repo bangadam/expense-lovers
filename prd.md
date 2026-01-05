@@ -46,6 +46,7 @@ Here is the translated **Product Requirements Document (PRD)** for **Expense Lov
 ### E. Technical Requirements (MVP)
 
 * **Database:** Local Storage (SQLite or Isar).
+* **UI Framework:** Gluestack UI (React Native).
 * **Backup:** None (Data resides solely on the device for MVP).
 
 ---
