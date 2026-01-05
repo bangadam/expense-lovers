@@ -1,10 +1,18 @@
-import { BottomNavigation, BottomNavigationTab, Icon } from '@ui-kitten/components';
+import { BottomNavigation, BottomNavigationTab } from '@ui-kitten/components';
+import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import React from 'react';
 
-const HomeIcon = (props: any) => <Icon {...props} name="home-outline" />;
-const HistoryIcon = (props: any) => <Icon {...props} name="clock-outline" />;
-const SettingsIcon = (props: any) => <Icon {...props} name="settings-outline" />;
+// Use Ionicons instead of UI Kitten Icon (React 19 compatibility)
+const HomeIcon = (props: any) => (
+  <Ionicons name="home-outline" size={24} color={props.style?.tintColor || '#8F9BB3'} />
+);
+const HistoryIcon = (props: any) => (
+  <Ionicons name="time-outline" size={24} color={props.style?.tintColor || '#8F9BB3'} />
+);
+const SettingsIcon = (props: any) => (
+  <Ionicons name="settings-outline" size={24} color={props.style?.tintColor || '#8F9BB3'} />
+);
 
 export default function TabLayout() {
   return (
