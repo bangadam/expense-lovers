@@ -1,19 +1,16 @@
 import React, { useMemo, useRef, useCallback } from 'react';
-import { StyleSheet, ScrollView } from 'react-native';
+import { ScrollView } from 'react-native';
 import {
   Box,
   Text,
   VStack,
   HStack,
-  Heading,
   Fab,
   FabIcon,
-  Button,
-  ButtonText,
   Icon,
   Pressable,
 } from '@gluestack-ui/themed';
-import { Plus, Wallet, ChevronRight } from 'lucide-react-native';
+import { Plus } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Link } from 'expo-router';
 import BottomSheet from '@gorhom/bottom-sheet';
@@ -23,6 +20,7 @@ import { useWalletStore } from '@/stores/wallet-store';
 import { useTransactionStore } from '@/stores/transaction-store';
 import { useCategoryStore } from '@/stores/category-store';
 import { AddTransactionSheet } from '@/components/add-transaction-sheet';
+import { DesignTokens } from '@/constants/theme';
 
 function formatCurrency(cents: number): string {
   return new Intl.NumberFormat('en-US', {
@@ -42,13 +40,6 @@ function formatDate(date: Date): string {
   if (transDate.toDateString() === yesterday.toDateString()) return 'Yesterday';
 
   return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(transDate);
-}
-
-function getGreeting(): string {
-  const hour = new Date().getHours();
-  if (hour < 12) return 'Good morning';
-  if (hour < 18) return 'Good afternoon';
-  return 'Good evening';
 }
 
 export default function HomeScreen() {
@@ -91,42 +82,50 @@ export default function HomeScreen() {
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 100 }}
           >
-            <Box p="$4">
-              <Heading size="md" mb="$4">
-                {getGreeting()}
-              </Heading>
+            <Box p="$6">
+              <Text
+                size="xl"
+                mb="$4"
+                style={{ fontFamily: DesignTokens.fonts.bold, color: DesignTokens.colors.ink }}
+              >
+                Hey there! 👋
+              </Text>
 
               <Box
-                bg="$white"
                 p="$6"
-                rounded="$xl"
                 alignItems="center"
                 mb="$6"
-                shadowColor="$black"
-                shadowOffset={{ width: 0, height: 2 }}
-                shadowOpacity={0.1}
-                shadowRadius={8}
-                elevation={2}
+                style={{
+                  backgroundColor: DesignTokens.colors.white,
+                  borderRadius: DesignTokens.radii.lg,
+                  ...DesignTokens.elevation.card,
+                }}
               >
-                <Text size="sm" color="$textLight500" mb="$2">
+                <Text size="sm" mb="$2" style={{ color: DesignTokens.colors.textSecondary }}>
                   Total Balance
                 </Text>
-                <Heading size="3xl" mb="$2">
+                <Text
+                  mb="$2"
+                  style={{
+                    ...DesignTokens.typography.display,
+                    color: DesignTokens.colors.ink,
+                  }}
+                >
                   {formatCurrency(totalAssets)}
-                </Heading>
-                <Text size="xs" color="$textLight400">
+                </Text>
+                <Text size="xs" style={{ color: DesignTokens.colors.textTertiary }}>
                   {wallets.length} {wallets.length === 1 ? 'wallet' : 'wallets'}
                 </Text>
               </Box>
 
               <Box mb="$6">
                 <HStack justifyContent="space-between" alignItems="center" mb="$3">
-                  <Heading size="sm">Wallets</Heading>
+                  <Text style={{ ...DesignTokens.typography.sectionTitle, color: DesignTokens.colors.ink }}>Wallets</Text>
                   <Link href="/wallet/create" asChild>
                     <Pressable>
                       <HStack alignItems="center" space="xs">
-                        <Icon as={Plus} size="sm" color="$primary500" />
-                        <Text color="$primary500" size="sm" fontWeight="$medium">Add</Text>
+                        <Icon as={Plus} size="sm" color={DesignTokens.colors.primary} />
+                        <Text style={{ color: DesignTokens.colors.primary, fontFamily: DesignTokens.fonts.semibold }} size="sm">Add</Text>
                       </HStack>
                     </Pressable>
                   </Link>
@@ -138,24 +137,25 @@ export default function HomeScreen() {
                       <Link key={wallet.id} href={`/wallet/${wallet.id}`} asChild>
                         <Pressable>
                           <Box
-                            bg="$white"
                             p="$4"
-                            rounded="$lg"
-                            minWidth={120}
-                            alignItems="center"
-                            shadowColor="$black"
-                            shadowOffset={{ width: 0, height: 1 }}
-                            shadowOpacity={0.05}
-                            shadowRadius={4}
-                            elevation={1}
+                            minWidth={140}
+                            style={{
+                              backgroundColor: DesignTokens.colors.ink,
+                              borderRadius: DesignTokens.radii.lg,
+                              ...DesignTokens.elevation.card,
+                            }}
                           >
-                            <Box mb="$2" p="$2" bg="$backgroundLight100" rounded="$full">
-                              <Icon as={Wallet} size="md" color="$textLight500" />
-                            </Box>
-                            <Text size="sm" color="$textLight500" mb="$1">
+                            <Text
+                              size="xs"
+                              mb="$1"
+                              style={{ color: DesignTokens.colors.textSecondary, fontFamily: DesignTokens.fonts.regular }}
+                            >
                               {wallet.name}
                             </Text>
-                            <Text fontWeight="$bold" color="$textLight900">
+                            <Text
+                              size="xl"
+                              style={{ color: DesignTokens.colors.white, fontFamily: DesignTokens.fonts.bold }}
+                            >
                               {formatCurrency(wallet.balance)}
                             </Text>
                           </Box>
@@ -166,19 +166,20 @@ export default function HomeScreen() {
                       <Link href="/wallet/create" asChild>
                         <Pressable>
                           <Box
-                            bg="$white"
                             p="$4"
-                            rounded="$lg"
-                            minWidth={120}
+                            minWidth={140}
                             alignItems="center"
-                            borderWidth={1}
-                            borderColor="$borderLight200"
-                            borderStyle="dashed"
+                            justifyContent="center"
+                            style={{
+                              backgroundColor: DesignTokens.colors.surfaceSubtle,
+                              borderRadius: DesignTokens.radii.lg,
+                              borderWidth: 1,
+                              borderColor: DesignTokens.colors.border,
+                              borderStyle: 'dashed',
+                            }}
                           >
-                            <Box mb="$2" p="$2" bg="$backgroundLight50" rounded="$full">
-                              <Icon as={Plus} size="md" color="$textLight400" />
-                            </Box>
-                            <Text size="sm" color="$textLight400">
+                            <Icon as={Plus} size="lg" color={DesignTokens.colors.textTertiary} />
+                            <Text size="sm" mt="$2" style={{ color: DesignTokens.colors.textTertiary }}>
                               Add Wallet
                             </Text>
                           </Box>
@@ -191,27 +192,39 @@ export default function HomeScreen() {
 
               <Box>
                 <HStack justifyContent="space-between" alignItems="center" mb="$3">
-                  <Heading size="sm">Recent Transactions</Heading>
+                  <Text style={{ ...DesignTokens.typography.sectionTitle, color: DesignTokens.colors.ink }}>
+                    Recent Transactions
+                  </Text>
                   <Link href="/history" asChild>
                     <Pressable>
-                      <Text color="$primary500" size="sm" fontWeight="$medium">See All</Text>
+                      <Text size="sm" style={{ color: DesignTokens.colors.primary, fontFamily: DesignTokens.fonts.semibold }}>
+                        See All
+                      </Text>
                     </Pressable>
                   </Link>
                 </HStack>
 
                 {recentTransactions.length === 0 ? (
                   <Box
-                    bg="$white"
                     p="$6"
-                    rounded="$lg"
                     alignItems="center"
+                    style={{
+                      backgroundColor: DesignTokens.colors.white,
+                      borderRadius: DesignTokens.radii.md,
+                    }}
                   >
-                    <Text color="$textLight400" textAlign="center">
+                    <Text textAlign="center" style={{ color: DesignTokens.colors.textTertiary }}>
                       No transactions yet. Tap + to add one.
                     </Text>
                   </Box>
                 ) : (
-                  <Box bg="$white" rounded="$lg" overflow="hidden">
+                  <Box
+                    overflow="hidden"
+                    style={{
+                      backgroundColor: DesignTokens.colors.white,
+                      borderRadius: DesignTokens.radii.md,
+                    }}
+                  >
                     {recentTransactions.map((item, index) => (
                       <Box key={item.id}>
                         <HStack
@@ -220,22 +233,24 @@ export default function HomeScreen() {
                           alignItems="center"
                         >
                           <VStack>
-                            <Text fontWeight="$medium" color="$textLight900">
+                            <Text style={{ fontFamily: DesignTokens.fonts.semibold, color: DesignTokens.colors.ink }}>
                               {getCategoryName(item.categoryId)}
                             </Text>
-                            <Text size="xs" color="$textLight500">
+                            <Text size="xs" style={{ color: DesignTokens.colors.textSecondary }}>
                               {getWalletName(item.walletId)} • {formatDate(new Date(item.date))}
                             </Text>
                           </VStack>
                           <Text
-                            fontWeight="$bold"
-                            color={item.type === 'income' ? '$success600' : '$error600'}
+                            style={{
+                              fontFamily: DesignTokens.fonts.bold,
+                              color: item.type === 'income' ? DesignTokens.colors.success : DesignTokens.colors.ink,
+                            }}
                           >
                             {item.type === 'income' ? '+' : '-'}{formatCurrency(item.amount)}
                           </Text>
                         </HStack>
                         {index < recentTransactions.length - 1 && (
-                          <Box h={1} bg="$borderLight100" />
+                          <Box h={1} style={{ backgroundColor: DesignTokens.colors.border }} />
                         )}
                       </Box>
                     ))}
@@ -254,8 +269,9 @@ export default function HomeScreen() {
             onPress={handleOpenSheet}
             mb="$4"
             mr="$4"
+            style={{ backgroundColor: DesignTokens.colors.primary }}
           >
-            <FabIcon as={Plus} />
+            <FabIcon as={Plus} color={DesignTokens.colors.white} />
           </Fab>
 
           <AddTransactionSheet ref={bottomSheetRef} onClose={handleCloseSheet} />

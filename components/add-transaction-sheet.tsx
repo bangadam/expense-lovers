@@ -19,8 +19,6 @@ import {
   SelectDragIndicatorWrapper,
   SelectDragIndicator,
   SelectItem,
-  Icon,
-  Heading,
   Box,
 } from '@gluestack-ui/themed';
 import { ChevronDown } from 'lucide-react-native';
@@ -28,6 +26,7 @@ import { ChevronDown } from 'lucide-react-native';
 import { useWalletStore } from '@/stores/wallet-store';
 import { useCategoryStore } from '@/stores/category-store';
 import { useTransactionStore } from '@/stores/transaction-store';
+import { DesignTokens } from '@/constants/theme';
 
 interface AddTransactionSheetProps {
   onClose: () => void;
@@ -123,26 +122,42 @@ const AddTransactionSheet = forwardRef<BottomSheet, AddTransactionSheetProps>(
       >
         <BottomSheetView style={styles.content}>
           <Box flex={1} px="$4" pb="$4">
-            <Heading size="md" textAlign="center" mb="$4">
+            <Text
+              textAlign="center"
+              mb="$4"
+              style={{ ...DesignTokens.typography.h2, color: DesignTokens.colors.ink }}
+            >
               Add Transaction
-            </Heading>
+            </Text>
 
             <HStack space="md" mb="$5" justifyContent="center">
               <Button
                 variant={type === 'expense' ? 'solid' : 'outline'}
-                action={type === 'expense' ? 'negative' : 'secondary'}
                 onPress={() => handleTypeChange('expense')}
                 flex={1}
+                style={{
+                  backgroundColor: type === 'expense' ? DesignTokens.colors.ink : 'transparent',
+                  borderColor: DesignTokens.colors.ink,
+                  borderRadius: DesignTokens.radii.full,
+                }}
               >
-                <ButtonText>Expense</ButtonText>
+                <ButtonText style={{ color: type === 'expense' ? DesignTokens.colors.white : DesignTokens.colors.ink }}>
+                  Expense
+                </ButtonText>
               </Button>
               <Button
                 variant={type === 'income' ? 'solid' : 'outline'}
-                action={type === 'income' ? 'positive' : 'secondary'}
                 onPress={() => handleTypeChange('income')}
                 flex={1}
+                style={{
+                  backgroundColor: type === 'income' ? DesignTokens.colors.primary : 'transparent',
+                  borderColor: DesignTokens.colors.primary,
+                  borderRadius: DesignTokens.radii.full,
+                }}
               >
-                <ButtonText>Income</ButtonText>
+                <ButtonText style={{ color: type === 'income' ? DesignTokens.colors.white : DesignTokens.colors.primary }}>
+                  Income
+                </ButtonText>
               </Button>
             </HStack>
 
@@ -153,14 +168,13 @@ const AddTransactionSheet = forwardRef<BottomSheet, AddTransactionSheetProps>(
                 onChangeText={(text) => setAmount(formatAmount(text))}
                 keyboardType="decimal-pad"
                 textAlign="center"
-                fontSize="$3xl"
-                fontWeight="$bold"
+                style={{ ...DesignTokens.typography.display, color: DesignTokens.colors.ink }}
               />
             </Input>
 
             <VStack space="md" mb="$4">
               <VStack space="xs">
-                <Text size="sm" color="$textLight500">
+                <Text size="sm" style={{ color: DesignTokens.colors.textSecondary }}>
                   Wallet
                 </Text>
                 <Select
@@ -186,7 +200,7 @@ const AddTransactionSheet = forwardRef<BottomSheet, AddTransactionSheetProps>(
               </VStack>
 
               <VStack space="xs">
-                <Text size="sm" color="$textLight500">
+                <Text size="sm" style={{ color: DesignTokens.colors.textSecondary }}>
                   Category
                 </Text>
                 <Select
@@ -215,7 +229,7 @@ const AddTransactionSheet = forwardRef<BottomSheet, AddTransactionSheetProps>(
               </VStack>
 
               <VStack space="xs">
-                <Text size="sm" color="$textLight500">
+                <Text size="sm" style={{ color: DesignTokens.colors.textSecondary }}>
                   Note (optional)
                 </Text>
                 <Input variant="outline" size="md">
@@ -231,12 +245,15 @@ const AddTransactionSheet = forwardRef<BottomSheet, AddTransactionSheetProps>(
 
             <Button
               size="lg"
-              action={type === 'expense' ? 'negative' : 'positive'}
               onPress={handleSubmit}
               isDisabled={isLoading || !amount || !selectedWalletId || !selectedCategoryId}
               mt="auto"
+              style={{
+                backgroundColor: DesignTokens.colors.primary,
+                borderRadius: DesignTokens.radii.full,
+              }}
             >
-              <ButtonText>
+              <ButtonText style={{ color: DesignTokens.colors.white, fontFamily: DesignTokens.fonts.semibold }}>
                 {isLoading ? 'Adding...' : `Add ${type === 'expense' ? 'Expense' : 'Income'}`}
               </ButtonText>
             </Button>

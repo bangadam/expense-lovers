@@ -1,25 +1,26 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { Home, Clock, Settings } from 'lucide-react-native';
+import { Home, Settings } from 'lucide-react-native';
+import { DesignTokens } from '@/constants/theme';
 
 export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#3366FF',
-        tabBarInactiveTintColor: '#8F9BB3',
+        tabBarActiveTintColor: DesignTokens.colors.primary,
+        tabBarInactiveTintColor: DesignTokens.colors.textTertiary,
         tabBarStyle: {
-          backgroundColor: '#FFFFFF',
+          backgroundColor: DesignTokens.colors.white,
           borderTopWidth: 1,
-          borderTopColor: '#EDF1F7',
+          borderTopColor: DesignTokens.colors.border,
           paddingTop: 8,
           paddingBottom: 8,
-          height: 60,
+          height: 64,
         },
         tabBarLabelStyle: {
           fontSize: 12,
-          fontWeight: '500',
+          fontFamily: DesignTokens.fonts.semibold,
         },
       }}
     >

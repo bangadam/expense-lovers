@@ -10,8 +10,7 @@ import {
   Pressable,
 } from '@gluestack-ui/themed';
 
-import { useSettingsStore, getEffectiveColorScheme } from '@/stores/settings-store';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useSettingsStore } from '@/stores/settings-store';
 
 type ThemeMode = 'light' | 'dark' | 'system';
 
@@ -22,9 +21,7 @@ const themeModes: { value: ThemeMode; label: string }[] = [
 ];
 
 export default function SettingsScreen() {
-  const systemColorScheme = useColorScheme();
   const { themeMode, setThemeMode } = useSettingsStore();
-  const effectiveScheme = getEffectiveColorScheme(themeMode, systemColorScheme);
   const appVersion = Constants.expoConfig?.version ?? '1.0.0';
 
   return (

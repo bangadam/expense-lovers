@@ -1,9 +1,16 @@
 // Polyfill for crypto.getRandomValues() required by uuid
 import 'react-native-get-random-values';
 
+import {
+  Montserrat_400Regular,
+  Montserrat_600SemiBold,
+  Montserrat_700Bold,
+  useFonts,
+} from '@expo-google-fonts/montserrat';
 import { config } from '@gluestack-ui/config';
 import { GluestackUIProvider } from '@gluestack-ui/themed';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import * as SplashScreen from 'expo-splash-screen';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
@@ -17,6 +24,9 @@ import { getEffectiveColorScheme, useSettingsStore } from '@/stores/settings-sto
 import { useTransactionStore } from '@/stores/transaction-store';
 import { useWalletStore } from '@/stores/wallet-store';
 
+// Prevent splash screen from auto-hiding
+SplashScreen.preventAutoHideAsync();
+
 export const unstable_settings = {
   anchor: '(tabs)',
 };
@@ -27,13 +37,18 @@ export default function RootLayout() {
   const effectiveColorScheme = getEffectiveColorScheme(themeMode, systemColorScheme);
   const [isDbReady, setIsDbReady] = useState(false);
 
+  const [fontsLoaded] = useFonts({
+    Montserrat_400Regular,
+    Montserrat_600SemiBold,
+    Montserrat_700Bold,
+  });
+
   useEffect(() => {
     async function initDb() {
       try {
         await initializeDatabase();
         await seedDefaultCategories();
 
-        // Hydrate stores from database
         await Promise.all([
           useWalletStore.getState().loadWallets(),
           useCategoryStore.getState().loadCategories(),
@@ -49,7 +64,13 @@ export default function RootLayout() {
     initDb();
   }, []);
 
-  if (!isDbReady) {
+  useEffect(() => {
+    if (fontsLoaded && isDbReady) {
+      SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded, isDbReady]);
+
+  if (!fontsLoaded || !isDbReady) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size="large" />
