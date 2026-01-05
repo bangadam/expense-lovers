@@ -42,6 +42,25 @@ const createTablesSQL = `
   CREATE INDEX IF NOT EXISTS idx_transactions_wallet ON transactions(wallet_id);
   CREATE INDEX IF NOT EXISTS idx_transactions_category ON transactions(category_id);
   CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions(date);
+
+  CREATE TABLE IF NOT EXISTS subscriptions (
+    id TEXT PRIMARY KEY NOT NULL,
+    name TEXT NOT NULL,
+    amount INTEGER NOT NULL,
+    cycle TEXT NOT NULL CHECK (cycle IN ('daily', 'weekly', 'monthly', 'yearly')),
+    wallet_id TEXT NOT NULL REFERENCES wallets(id),
+    category_id TEXT NOT NULL REFERENCES categories(id),
+    start_date INTEGER NOT NULL,
+    next_due_date INTEGER NOT NULL,
+    is_active INTEGER NOT NULL DEFAULT 1,
+    reminder_days_before INTEGER NOT NULL DEFAULT 1,
+    note TEXT,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_subscriptions_wallet ON subscriptions(wallet_id);
+  CREATE INDEX IF NOT EXISTS idx_subscriptions_next_due ON subscriptions(next_due_date);
 `;
 
 export async function initializeDatabase(): Promise<void> {
