@@ -19,14 +19,19 @@ export const categories = sqliteTable('categories', {
 
 export const transactions = sqliteTable('transactions', {
   id: text('id').primaryKey(),
-  amount: real('amount').notNull(),
   type: text('type', { enum: ['income', 'expense'] }).notNull(),
-  categoryId: text('category_id').references(() => categories.id).notNull(),
-  walletId: text('wallet_id').references(() => wallets.id).notNull(),
+  status: text('status', { enum: ['paid', 'pending'] }).notNull().default('paid'),
+  amount: integer('amount').notNull(), // stored in cents, always positive
+  walletId: text('wallet_id')
+    .notNull()
+    .references(() => wallets.id),
+  categoryId: text('category_id')
+    .notNull()
+    .references(() => categories.id),
   note: text('note'),
-  date: integer('date', { mode: 'timestamp' }).notNull(),
-  status: text('status', { enum: ['completed', 'pending'] }).default('completed').notNull(),
-  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+  date: integer('date', { mode: 'timestamp_ms' }).notNull(),
+  reminderDate: integer('reminder_date', { mode: 'timestamp_ms' }),
+  createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
 });
 
 export const subscriptions = sqliteTable('subscriptions', {
